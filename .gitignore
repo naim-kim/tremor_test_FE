@@ -27,11 +27,11 @@ migrate_working_dir/
 **/doc/api/
 **/ios/Flutter/.last_build_id
 .dart_tool/
+.flutter-plugins
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
 /build/
-/coverage/
 
 # Symbolication related
 app.*.symbols
@@ -43,3 +43,44 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+../.idea
+
+pubspec.lock
+
+.idea/
+
+.vscode/
+# .gitignore
+.env
+
+ios/Config/Config.xcconfig
+
+ios/Share Extension/Config.swift
+
+ios/Runner/Config.swift
+ios/Runner/Info.plist
+ios/Share Extension/TokenManager.swift
+
+# Android/Gradle specific
+android/.gradle/
+android/local.properties
+android/key.properties
+android/**/gradle-wrapper.jar
+android/**/captures/
+android/.cxx/
+android/app/google-services.json   # if you use Firebase
+android/app/google-services.json.*
+android/app/src/**/google-services.json
+
+# Keystore files
+*.jks
+*.keystore
+
+# Android Studio
+android/.idea/
+
+# Flutter auto-generated plugin registrant files
+macos/Flutter/GeneratedPluginRegistrant.swift
+windows/flutter/generated_plugin_registrant.cc
+windows/flutter/generated_plugins.cmake
