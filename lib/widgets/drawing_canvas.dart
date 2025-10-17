@@ -4,7 +4,7 @@ import '../models/test_result.dart';
 class DrawingCanvas extends StatelessWidget {
   final double size;
   final Path? baselinePath;
-  final List<DrawingPoint> userPoints;
+  final List<DrawingPoint?> userPoints; // null을 포함하도록 변경
   final Function(Offset) onPanStart;
   final Function(Offset) onPanUpdate;
   final Function() onPanEnd;
@@ -81,7 +81,7 @@ class DrawingCanvas extends StatelessWidget {
 
 class DrawingPainter extends CustomPainter {
   final Path? baselinePath;
-  final List<DrawingPoint> userPoints;
+  final List<DrawingPoint?> userPoints;
   final bool showBaseline;
 
   DrawingPainter({
@@ -103,7 +103,7 @@ class DrawingPainter extends CustomPainter {
       canvas.drawPath(baselinePath!, baselinePaint);
     }
 
-    // Draw user's drawing
+    // Draw user's drawing with line breaks
     if (userPoints.isNotEmpty) {
       final userPaint = Paint()
         ..color = const Color(0xFF4A90E2)
@@ -112,26 +112,47 @@ class DrawingPainter extends CustomPainter {
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round;
 
-      final path = Path();
-      path.moveTo(userPoints.first.x, userPoints.first.y);
+      Path? currentPath;
 
-      for (int i = 1; i < userPoints.length; i++) {
-        path.lineTo(userPoints[i].x, userPoints[i].y);
+      for (int i = 0; i < userPoints.length; i++) {
+        final point = userPoints[i];
+
+        if (point == null) {
+          // null이면 현재 경로를 그리고 새로 시작
+          if (currentPath != null) {
+            canvas.drawPath(currentPath, userPaint);
+            currentPath = null;
+          }
+        } else {
+          if (currentPath == null) {
+            // 새 경로 시작
+            currentPath = Path();
+            currentPath.moveTo(point.x, point.y);
+          } else {
+            // 경로에 점 추가
+            currentPath.lineTo(point.x, point.y);
+          }
+        }
       }
 
-      canvas.drawPath(path, userPaint);
+      // 마지막 경로 그리기
+      if (currentPath != null) {
+        canvas.drawPath(currentPath, userPaint);
+      }
 
-      // Draw points for debugging (optional)
+      // Draw points for visual feedback
       final pointPaint = Paint()
         ..color = const Color(0xFF4A90E2).withOpacity(0.3)
         ..style = PaintingStyle.fill;
 
       for (final point in userPoints) {
-        canvas.drawCircle(
-          Offset(point.x, point.y),
-          1.5,
-          pointPaint,
-        );
+        if (point != null) {
+          canvas.drawCircle(
+            Offset(point.x, point.y),
+            1.5,
+            pointPaint,
+          );
+        }
       }
     }
   }
