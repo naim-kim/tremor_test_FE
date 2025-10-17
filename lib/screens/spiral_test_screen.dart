@@ -15,7 +15,7 @@ class SpiralTestScreen extends StatefulWidget {
 }
 
 class _SpiralTestScreenState extends State<SpiralTestScreen> {
-  final List<DrawingPoint> _points = [];
+  final List<DrawingPoint?> _points = []; // null을 포함하도록 변경
   int? _startTime;
   Timer? _samplingTimer;
   Offset? _lastPosition;
@@ -55,6 +55,9 @@ class _SpiralTestScreenState extends State<SpiralTestScreen> {
   void _stopDrawing() {
     setState(() {
       _isDrawing = false;
+      _lastPosition = null;
+      // 선을 끊기 위해 null 추가
+      _points.add(null);
     });
   }
 
@@ -62,7 +65,7 @@ class _SpiralTestScreenState extends State<SpiralTestScreen> {
     _samplingTimer = Timer.periodic(
       const Duration(milliseconds: samplingRateMs),
       (timer) {
-        if (_lastPosition != null && _hasStarted) {
+        if (_lastPosition != null && _hasStarted && _isDrawing) {
           final currentTime = DateTime.now().millisecondsSinceEpoch;
           final point = DrawingPoint(
             x: _lastPosition!.dx,
@@ -80,7 +83,10 @@ class _SpiralTestScreenState extends State<SpiralTestScreen> {
   Future<void> _finishTest() async {
     _samplingTimer?.cancel();
 
-    if (_points.isEmpty) {
+    // null 값 제거하여 실제 포인트만 전달
+    final validPoints = _points.whereType<DrawingPoint>().toList();
+
+    if (validPoints.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('먼저 그림을 그려주세요')),
       );
@@ -100,7 +106,7 @@ class _SpiralTestScreenState extends State<SpiralTestScreen> {
     final testProvider = Provider.of<TestProvider>(context, listen: false);
     final result = await testProvider.analyzeTest(
       testType: TestType.spiral,
-      points: _points,
+      points: validPoints,
     );
 
     // Save result
