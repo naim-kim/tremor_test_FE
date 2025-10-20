@@ -41,7 +41,6 @@ class _ComparisonPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Scale factor to fit drawing in canvas
     final points = result.drawingPoints;
     if (points.isEmpty) return;
 
@@ -81,7 +80,7 @@ class _ComparisonPainter extends CustomPainter {
       canvas.drawPath(baselinePath, baselinePaint);
     }
 
-    // Draw user's drawing
+    // Draw user's drawing - 선을 끊어서 그리기
     final userPaint = Paint()
       ..color = const Color(0xFF4A90E2)
       ..style = PaintingStyle.stroke
@@ -89,34 +88,86 @@ class _ComparisonPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
-    final path = Path();
+    // 연속된 점들을 그룹화하여 그리기
+    List<List<DrawingPoint>> segments = [];
+    List<DrawingPoint> currentSegment = [];
 
-    // Scale and center the first point
-    final firstScaledX = size.width / 2 + (points.first.x - offsetX) * scale;
-    final firstScaledY = size.height / 2 + (points.first.y - offsetY) * scale;
-    path.moveTo(firstScaledX, firstScaledY);
+    for (int i = 0; i < points.length; i++) {
+      final point = points[i];
 
-    for (int i = 1; i < points.length; i++) {
-      final scaledX = size.width / 2 + (points[i].x - offsetX) * scale;
-      final scaledY = size.height / 2 + (points[i].y - offsetY) * scale;
-      path.lineTo(scaledX, scaledY);
+      if (i == 0) {
+        // 첫 점
+        currentSegment.add(point);
+      } else {
+        final prevPoint = points[i - 1];
+        final timeDiff = point.timestamp - prevPoint.timestamp;
+
+        // 시간 차이가 50ms 이상이면 선이 끊긴 것으로 판단
+        if (timeDiff > 50) {
+          // 이전 세그먼트 저장
+          if (currentSegment.isNotEmpty) {
+            segments.add(List.from(currentSegment));
+          }
+          // 새 세그먼트 시작
+          currentSegment = [point];
+        } else {
+          currentSegment.add(point);
+        }
+      }
     }
 
-    canvas.drawPath(path, userPaint);
+    // 마지막 세그먼트 추가
+    if (currentSegment.isNotEmpty) {
+      segments.add(currentSegment);
+    }
 
-    // Draw start point indicator
-    final startPaint = Paint()
-      ..color = Colors.green
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(Offset(firstScaledX, firstScaledY), 6, startPaint);
+    // 각 세그먼트별로 그리기
+    for (final segment in segments) {
+      if (segment.isEmpty) continue;
 
-    // Draw end point indicator
-    final endScaledX = size.width / 2 + (points.last.x - offsetX) * scale;
-    final endScaledY = size.height / 2 + (points.last.y - offsetY) * scale;
-    final endPaint = Paint()
-      ..color = Colors.red
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(Offset(endScaledX, endScaledY), 6, endPaint);
+      final path = Path();
+
+      // 세그먼트의 첫 점으로 이동
+      final firstPoint = segment.first;
+      final firstScaledX = size.width / 2 + (firstPoint.x - offsetX) * scale;
+      final firstScaledY = size.height / 2 + (firstPoint.y - offsetY) * scale;
+      path.moveTo(firstScaledX, firstScaledY);
+
+      // 세그먼트의 나머지 점들 연결
+      for (int i = 1; i < segment.length; i++) {
+        final scaledX = size.width / 2 + (segment[i].x - offsetX) * scale;
+        final scaledY = size.height / 2 + (segment[i].y - offsetY) * scale;
+        path.lineTo(scaledX, scaledY);
+      }
+
+      canvas.drawPath(path, userPaint);
+    }
+
+    // Draw start and end point indicators for the first segment
+    if (segments.isNotEmpty && segments.first.isNotEmpty) {
+      final firstSegment = segments.first;
+
+      // Start point (green)
+      final startPoint = firstSegment.first;
+      final startScaledX = size.width / 2 + (startPoint.x - offsetX) * scale;
+      final startScaledY = size.height / 2 + (startPoint.y - offsetY) * scale;
+
+      final startPaint = Paint()
+        ..color = Colors.green
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(Offset(startScaledX, startScaledY), 6, startPaint);
+
+      // End point (red) - 마지막 세그먼트의 마지막 점
+      final lastSegment = segments.last;
+      final endPoint = lastSegment.last;
+      final endScaledX = size.width / 2 + (endPoint.x - offsetX) * scale;
+      final endScaledY = size.height / 2 + (endPoint.y - offsetY) * scale;
+
+      final endPaint = Paint()
+        ..color = Colors.red
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(Offset(endScaledX, endScaledY), 6, endPaint);
+    }
   }
 
   @override
