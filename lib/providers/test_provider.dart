@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import '../models/test_result.dart';
 import '../utils/fft_analyzer.dart';
 import '../utils/spiral_generator.dart';
+import '../utils/spiral_analyzer.dart';
 
 class TestProvider extends ChangeNotifier {
   final Box<TestResult> _resultsBox = Hive.box<TestResult>('test_results');
@@ -32,24 +33,86 @@ class TestProvider extends ChangeNotifier {
     required TestType testType,
     required List<DrawingPoint> points,
   }) async {
+    if (testType == TestType.spiral) {
+      // Use SpiralAnalyzer for spiral tests (matching data engineer's code)
+      return await _analyzeSpiralTest(points);
+    } else {
+      // Use existing FFT analyzer for pentagon tests
+      return await _analyzePentagonTest(points);
+    }
+  }
+
+  /// Analyze spiral test using SpiralAnalyzer (matching data engineer's code)
+  Future<TestResult> _analyzeSpiralTest(List<DrawingPoint> points) async {
+    if (points.isEmpty) {
+      throw ArgumentError('Points list cannot be empty');
+    }
+
+    // Get baseline reference points
+    final canvasSize = 300.0;
+    final baselinePoints = SpiralGenerator.getSpiralPoints(canvasSize, 500);
+
+    // Convert DrawingPoint to Offset for SpiralAnalyzer
+    final userPoints = points.map((p) => Offset(p.x, p.y)).toList();
+    final refPoints = baselinePoints;
+
+    // Calculate actual time and tremor intensity
+    final recordedTime = points.last.timestamp / 1000.0; // Convert ms to seconds
+    final numPoints = points.length;
+    final fs = numPoints / recordedTime; // Sampling frequency (Hz)
+
+    // Get tremor intensity from FFT analysis
+    final fftMetrics = await FFTAnalyzer.analyze(points);
+    final tremorInput = fftMetrics.amplitude; // Use amplitude as tremor intensity
+
+    // Create SpiralAnalyzer and run analysis
+    final analyzer = SpiralAnalyzer(fs: fs);
+    final spiralResult = analyzer.analyze(
+      refPoints: refPoints,
+      userRawPoints: userPoints,
+      actualTime: recordedTime,
+      actualTremor: tremorInput,
+    );
+
+    // Create TremorMetrics from spiral analysis result
+    final metrics = TremorMetrics(
+      frequency: spiralResult.dominantTremorFreq,
+      amplitude: tremorInput,
+      deviationFromBaseline: spiralResult.meanError, // Use meanError as deviation
+      testDuration: recordedTime,
+      averageSpeed: fftMetrics.averageSpeed, // Keep from FFT analysis
+      mean: spiralResult.meanError,
+      std: spiralResult.maxError - spiralResult.meanError, // Approximate std
+    );
+
+    // Use judgment message as result category (focus on message, not score)
+    final resultCategory = spiralResult.judgment;
+
+    // Calculate a simple score for display (but focus on message)
+    final overallScore = _calculateSpiralScore(spiralResult);
+
+    return TestResult(
+      id: _uuid.v4(),
+      userId: 'current_user', // Replace with actual user ID
+      testType: TestType.spiral,
+      timestamp: DateTime.now(),
+      drawingPoints: points,
+      overallScore: overallScore,
+      metrics: metrics,
+      resultCategory: resultCategory,
+    );
+  }
+
+  /// Analyze pentagon test using existing FFT analyzer
+  Future<TestResult> _analyzePentagonTest(List<DrawingPoint> points) async {
     // Perform FFT analysis
     final metrics = await FFTAnalyzer.analyze(points);
 
-    // Calculate deviation from baseline for spiral test
-    double deviation = 0;
-    if (testType == TestType.spiral) {
-      final baselinePoints = SpiralGenerator.getSpiralPoints(300, 500);
-      deviation = FFTAnalyzer.calculateDeviationFromBaseline(
-        points,
-        baselinePoints,
-      );
-    }
-
-    // Update metrics with deviation
+    // Update metrics
     final updatedMetrics = TremorMetrics(
       frequency: metrics.frequency,
       amplitude: metrics.amplitude,
-      deviationFromBaseline: deviation,
+      deviationFromBaseline: 0, // Not applicable for pentagon
       testDuration: metrics.testDuration,
       averageSpeed: metrics.averageSpeed,
       mean: metrics.mean,
@@ -65,13 +128,31 @@ class TestProvider extends ChangeNotifier {
     return TestResult(
       id: _uuid.v4(),
       userId: 'current_user', // Replace with actual user ID
-      testType: testType,
+      testType: TestType.pentagon,
       timestamp: DateTime.now(),
       drawingPoints: points,
       overallScore: overallScore,
       metrics: updatedMetrics,
       resultCategory: resultCategory,
     );
+  }
+
+  /// Calculate score for spiral test (simplified, focus on message)
+  double _calculateSpiralScore(SpiralAnalysisResult result) {
+    // Simple scoring based on mean error
+    // Lower mean error = higher score
+    // But remember: focus on result message, not score
+    if (result.meanError <= 15.0) {
+      return 85.0; // Good
+    } else if (result.meanError <= 20.0) {
+      return 70.0; // Fair
+    } else if (result.meanError <= 25.0) {
+      return 55.0; // Average
+    } else if (result.meanError <= 30.0) {
+      return 40.0; // Needs attention
+    } else {
+      return 25.0; // Poor
+    }
   }
 
   double _calculateOverallScore(TremorMetrics metrics) {

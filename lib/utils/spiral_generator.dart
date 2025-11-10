@@ -9,7 +9,8 @@ class SpiralGenerator {
   static Path generateSpiralPath(double canvasSize) {
     const int numPoints = 500;
     const double tMin = 0.0;
-    const double tMax = 4 * math.pi;
+    // Set to 3 full turns: theta_max = 6 * PI, with theta = t
+    const double tMax = 6 * math.pi;
 
     final path = Path();
     final List<Offset> points = [];
@@ -17,8 +18,9 @@ class SpiralGenerator {
     // Generate spiral points
     for (int i = 0; i < numPoints; i++) {
       final t = tMin + i * (tMax - tMin) / (numPoints - 1);
-      final x = t * math.cos(2.5 * t);
-      final y = t * math.sin(2.5 * t);
+      // Archimedean spiral with 3 turns: r = t, theta = t
+      final x = t * math.cos(t);
+      final y = t * math.sin(t);
       points.add(Offset(x, y));
     }
 
@@ -67,15 +69,16 @@ class SpiralGenerator {
   /// Get baseline points for distance calculation
   static List<Offset> getSpiralPoints(double canvasSize, int numPoints) {
     const double tMin = 0.0;
-    const double tMax = 4 * math.pi;
+    // Match 3 turns: theta_max = 6 * PI, with theta = t
+    const double tMax = 6 * math.pi;
 
     final List<Offset> rawPoints = [];
 
     // Generate spiral points
     for (int i = 0; i < numPoints; i++) {
       final t = tMin + i * (tMax - tMin) / (numPoints - 1);
-      final x = t * math.cos(2.5 * t);
-      final y = t * math.sin(2.5 * t);
+      final x = t * math.cos(t);
+      final y = t * math.sin(t);
       rawPoints.add(Offset(x, y));
     }
 

@@ -44,31 +44,7 @@ class _ComparisonPainter extends CustomPainter {
     final points = result.drawingPoints;
     if (points.isEmpty) return;
 
-    // Find bounds of user drawing
-    double minX = points.first.x;
-    double maxX = points.first.x;
-    double minY = points.first.y;
-    double maxY = points.first.y;
-
-    for (final point in points) {
-      if (point.x < minX) minX = point.x;
-      if (point.x > maxX) maxX = point.x;
-      if (point.y < minY) minY = point.y;
-      if (point.y > maxY) maxY = point.y;
-    }
-
-    final rangeX = maxX - minX;
-    final rangeY = maxY - minY;
-    final maxRange = rangeX > rangeY ? rangeX : rangeY;
-
-    if (maxRange == 0) return;
-
-    final padding = 30.0;
-    final scale = (size.width - 2 * padding) / maxRange;
-    final offsetX = minX + rangeX / 2;
-    final offsetY = minY + rangeY / 2;
-
-    // Draw baseline (spiral) if applicable
+    // Draw baseline (spiral) if applicable - use same scale as test screen
     if (showBaseline) {
       final baselinePath = SpiralGenerator.generateSpiralPath(size.width);
       final baselinePaint = Paint()
@@ -80,7 +56,8 @@ class _ComparisonPainter extends CustomPainter {
       canvas.drawPath(baselinePath, baselinePaint);
     }
 
-    // Draw user's drawing - 선을 끊어서 그리기
+    // Draw user's drawing at original coordinates (no scaling)
+    // Points are stored in absolute pixel coordinates (0-300 range from test screen)
     final userPaint = Paint()
       ..color = const Color(0xFF4A90E2)
       ..style = PaintingStyle.stroke
@@ -121,23 +98,19 @@ class _ComparisonPainter extends CustomPainter {
       segments.add(currentSegment);
     }
 
-    // 각 세그먼트별로 그리기
+    // 각 세그먼트별로 그리기 - 원본 좌표 사용 (스케일링 없음)
     for (final segment in segments) {
       if (segment.isEmpty) continue;
 
       final path = Path();
 
-      // 세그먼트의 첫 점으로 이동
+      // 세그먼트의 첫 점으로 이동 - 원본 좌표 그대로 사용
       final firstPoint = segment.first;
-      final firstScaledX = size.width / 2 + (firstPoint.x - offsetX) * scale;
-      final firstScaledY = size.height / 2 + (firstPoint.y - offsetY) * scale;
-      path.moveTo(firstScaledX, firstScaledY);
+      path.moveTo(firstPoint.x, firstPoint.y);
 
-      // 세그먼트의 나머지 점들 연결
+      // 세그먼트의 나머지 점들 연결 - 원본 좌표 그대로 사용
       for (int i = 1; i < segment.length; i++) {
-        final scaledX = size.width / 2 + (segment[i].x - offsetX) * scale;
-        final scaledY = size.height / 2 + (segment[i].y - offsetY) * scale;
-        path.lineTo(scaledX, scaledY);
+        path.lineTo(segment[i].x, segment[i].y);
       }
 
       canvas.drawPath(path, userPaint);
@@ -147,26 +120,20 @@ class _ComparisonPainter extends CustomPainter {
     if (segments.isNotEmpty && segments.first.isNotEmpty) {
       final firstSegment = segments.first;
 
-      // Start point (green)
+      // Start point (green) - 원본 좌표 사용
       final startPoint = firstSegment.first;
-      final startScaledX = size.width / 2 + (startPoint.x - offsetX) * scale;
-      final startScaledY = size.height / 2 + (startPoint.y - offsetY) * scale;
-
       final startPaint = Paint()
         ..color = Colors.green
         ..style = PaintingStyle.fill;
-      canvas.drawCircle(Offset(startScaledX, startScaledY), 6, startPaint);
+      canvas.drawCircle(Offset(startPoint.x, startPoint.y), 6, startPaint);
 
-      // End point (red) - 마지막 세그먼트의 마지막 점
+      // End point (red) - 마지막 세그먼트의 마지막 점, 원본 좌표 사용
       final lastSegment = segments.last;
       final endPoint = lastSegment.last;
-      final endScaledX = size.width / 2 + (endPoint.x - offsetX) * scale;
-      final endScaledY = size.height / 2 + (endPoint.y - offsetY) * scale;
-
       final endPaint = Paint()
         ..color = Colors.red
         ..style = PaintingStyle.fill;
-      canvas.drawCircle(Offset(endScaledX, endScaledY), 6, endPaint);
+      canvas.drawCircle(Offset(endPoint.x, endPoint.y), 6, endPaint);
     }
   }
 
