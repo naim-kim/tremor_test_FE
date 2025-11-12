@@ -1,6 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
+import 'package:intl/intl.dart';
 import '../models/test_result.dart';
 import '../utils/fft_analyzer.dart';
 import '../utils/spiral_generator.dart';
@@ -57,13 +61,15 @@ class TestProvider extends ChangeNotifier {
     final refPoints = baselinePoints;
 
     // Calculate actual time and tremor intensity
-    final recordedTime = points.last.timestamp / 1000.0; // Convert ms to seconds
+    final recordedTime =
+        points.last.timestamp / 1000.0; // Convert ms to seconds
     final numPoints = points.length;
     final fs = numPoints / recordedTime; // Sampling frequency (Hz)
 
     // Get tremor intensity from FFT analysis
     final fftMetrics = await FFTAnalyzer.analyze(points);
-    final tremorInput = fftMetrics.amplitude; // Use amplitude as tremor intensity
+    final tremorInput =
+        fftMetrics.amplitude; // Use amplitude as tremor intensity
 
     // Create SpiralAnalyzer and run analysis
     final analyzer = SpiralAnalyzer(fs: fs);
@@ -78,7 +84,8 @@ class TestProvider extends ChangeNotifier {
     final metrics = TremorMetrics(
       frequency: spiralResult.dominantTremorFreq,
       amplitude: tremorInput,
-      deviationFromBaseline: spiralResult.meanError, // Use meanError as deviation
+      deviationFromBaseline:
+          spiralResult.meanError, // Use meanError as deviation
       testDuration: recordedTime,
       averageSpeed: fftMetrics.averageSpeed, // Keep from FFT analysis
       mean: spiralResult.meanError,
@@ -212,7 +219,164 @@ class TestProvider extends ChangeNotifier {
 
   Future<void> saveResult(TestResult result) async {
     await _resultsBox.put(result.id, result);
+
+    // Automatically save CSV file
+    try {
+      await _saveResultToCSV(result);
+    } catch (e) {
+      // Silently fail CSV export - don't block result saving
+      debugPrint('Failed to save CSV: $e');
+    }
+
     notifyListeners();
+  }
+
+  /// Save test result to CSV file automatically
+  Future<void> _saveResultToCSV(TestResult result) async {
+    try {
+      // On Windows, use Downloads folder for easier access
+      // On other platforms, use application documents directory
+      Directory directory;
+      try {
+        // Try to get Downloads directory (more accessible on Windows)
+        final downloadsDir = await getDownloadsDirectory();
+        if (downloadsDir != null) {
+          directory = downloadsDir;
+        } else {
+          // Fallback to application documents directory
+          directory = await getApplicationDocumentsDirectory();
+        }
+      } catch (e) {
+        // Fallback to application documents directory
+        directory = await getApplicationDocumentsDirectory();
+      }
+
+      final testDataDir =
+          Directory(path.join(directory.path, 'tremor_test_data'));
+
+      // Create directory if it doesn't exist
+      if (!await testDataDir.exists()) {
+        await testDataDir.create(recursive: true);
+      }
+
+      // Generate filename with timestamp
+      final timestamp = DateFormat('yyyyMMdd_HHmmss').format(result.timestamp);
+      final testTypeStr =
+          result.testType == TestType.spiral ? 'spiral' : 'pentagon';
+      final filename =
+          '${testTypeStr}_${timestamp}_${result.id.substring(0, 8)}.csv';
+      final filePath = path.join(testDataDir.path, filename);
+      final file = File(filePath);
+
+      // Generate CSV content
+      final csvContent = _generateCSVContent(result);
+
+      // Write to file
+      await file.writeAsString(csvContent);
+
+      debugPrint('CSV saved to: $filePath');
+    } catch (e) {
+      debugPrint('Error saving CSV: $e');
+      rethrow;
+    }
+  }
+
+  /// Get the path where CSV files are saved (for user reference)
+  Future<String> getCSVSavePath() async {
+    try {
+      Directory directory;
+      try {
+        final downloadsDir = await getDownloadsDirectory();
+        if (downloadsDir != null) {
+          directory = downloadsDir;
+        } else {
+          directory = await getApplicationDocumentsDirectory();
+        }
+      } catch (e) {
+        directory = await getApplicationDocumentsDirectory();
+      }
+
+      final testDataDir =
+          Directory(path.join(directory.path, 'tremor_test_data'));
+      return testDataDir.path;
+    } catch (e) {
+      return 'Unable to determine path: $e';
+    }
+  }
+
+  /// Generate comprehensive CSV content with both drawing points and metrics
+  String _generateCSVContent(TestResult result) {
+    final buffer = StringBuffer();
+    final dateFormat = DateFormat('yyyy-MM-dd HH:mm:ss');
+
+    // Header section with metadata
+    buffer.writeln('# Tremor Test Data Export');
+    buffer.writeln('# Test ID: ${result.id}');
+    buffer.writeln('# Test Type: ${result.testType}');
+    buffer.writeln('# Timestamp: ${dateFormat.format(result.timestamp)}');
+    buffer.writeln('# User ID: ${result.userId}');
+    buffer
+        .writeln('# Overall Score: ${result.overallScore.toStringAsFixed(2)}');
+    buffer.writeln('# Result Category: ${result.resultCategory}');
+    buffer.writeln('');
+
+    // Metrics section
+    buffer.writeln('# Metrics');
+    buffer.writeln('Metric,Value,Unit');
+    buffer
+        .writeln('Frequency,${result.metrics.frequency.toStringAsFixed(4)},Hz');
+    buffer
+        .writeln('Amplitude,${result.metrics.amplitude.toStringAsFixed(4)},px');
+    buffer.writeln(
+        'Deviation from Baseline,${result.metrics.deviationFromBaseline.toStringAsFixed(4)},px');
+    buffer.writeln(
+        'Test Duration,${result.metrics.testDuration.toStringAsFixed(4)},seconds');
+    buffer.writeln(
+        'Average Speed,${result.metrics.averageSpeed.toStringAsFixed(4)},px/s');
+    buffer.writeln('Mean,${result.metrics.mean.toStringAsFixed(4)},px');
+    buffer.writeln(
+        'Standard Deviation,${result.metrics.std.toStringAsFixed(4)},px');
+    buffer.writeln('');
+
+    // Baseline points section (for spiral tests)
+    if (result.testType == TestType.spiral) {
+      buffer.writeln('# Baseline Reference Points (Spiral)');
+      buffer.writeln(
+          '# Generated using: r = t, theta = t, t from 0 to 6*PI (3 turns)');
+      buffer.writeln('# Formula: x = t * cos(t), y = t * sin(t)');
+      buffer.writeln('baseline_x,baseline_y');
+
+      // Get baseline points (same as used in analysis)
+      const canvasSize = 300.0;
+      const numBaselinePoints = 500;
+      final baselinePoints =
+          SpiralGenerator.getSpiralPoints(canvasSize, numBaselinePoints);
+
+      for (final point in baselinePoints) {
+        buffer.writeln(
+          '${point.dx.toStringAsFixed(4)},'
+          '${point.dy.toStringAsFixed(4)}',
+        );
+      }
+      buffer.writeln('');
+    }
+
+    // User drawing points section
+    buffer.writeln('# User Drawing Points');
+    buffer.writeln('x,y,normalizedX,normalizedY,timestamp_ms');
+
+    // Data points
+    for (final point in result.drawingPoints) {
+      buffer.writeln(
+        '${point.x.toStringAsFixed(4)},'
+        '${point.y.toStringAsFixed(4)},'
+        '${point.normalizedX.toStringAsFixed(6)},'
+        '${point.normalizedY.toStringAsFixed(6)},'
+        '${point.timestamp}',
+      );
+    }
+
+    return buffer.toString();
   }
 
   Future<void> deleteResult(String id) async {
