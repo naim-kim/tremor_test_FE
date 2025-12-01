@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 import 'package:path_provider/path_provider.dart';
@@ -56,40 +58,24 @@ class TestProvider extends ChangeNotifier {
     final canvasSize = 300.0;
     final baselinePoints = SpiralGenerator.getSpiralPoints(canvasSize, 500);
 
-    // Convert DrawingPoint to Offset for SpiralAnalyzer
-    final userPoints = points.map((p) => Offset(p.x, p.y)).toList();
     final refPoints = baselinePoints;
 
-    // Calculate actual time and tremor intensity
-    final recordedTime =
-        points.last.timestamp / 1000.0; // Convert ms to seconds
-    final numPoints = points.length;
-    final fs = numPoints / recordedTime; // Sampling frequency (Hz)
-
-    // Get tremor intensity from FFT analysis
-    final fftMetrics = await FFTAnalyzer.analyze(points);
-    final tremorInput =
-        fftMetrics.amplitude; // Use amplitude as tremor intensity
-
     // Create SpiralAnalyzer and run analysis
-    final analyzer = SpiralAnalyzer(fs: fs);
+    final analyzer = const SpiralAnalyzer();
     final spiralResult = analyzer.analyze(
       refPoints: refPoints,
-      userRawPoints: userPoints,
-      actualTime: recordedTime,
-      actualTremor: tremorInput,
+      drawingPoints: points,
     );
 
     // Create TremorMetrics from spiral analysis result
     final metrics = TremorMetrics(
       frequency: spiralResult.dominantTremorFreq,
-      amplitude: tremorInput,
-      deviationFromBaseline:
-          spiralResult.meanError, // Use meanError as deviation
-      testDuration: recordedTime,
-      averageSpeed: fftMetrics.averageSpeed, // Keep from FFT analysis
+      amplitude: spiralResult.tremorAmplitude,
+      deviationFromBaseline: spiralResult.meanError,
+      testDuration: spiralResult.totalTime,
+      averageSpeed: spiralResult.avgSpeed,
       mean: spiralResult.meanError,
-      std: spiralResult.maxError - spiralResult.meanError, // Approximate std
+      std: _calculateStd(spiralResult.distanceErrors),
     );
 
     // Use judgment message as result category (focus on message, not score)
@@ -160,6 +146,19 @@ class TestProvider extends ChangeNotifier {
     } else {
       return 25.0; // Poor
     }
+  }
+
+  double _calculateStd(List<double> values) {
+    if (values.isEmpty) {
+      return 0.0;
+    }
+    final double mean = values.reduce((a, b) => a + b) / values.length;
+    final double variance = values.fold<double>(
+          0.0,
+          (sum, value) => sum + math.pow(value - mean, 2).toDouble(),
+        ) /
+        values.length;
+    return math.sqrt(variance);
   }
 
   double _calculateOverallScore(TremorMetrics metrics) {
@@ -234,25 +233,24 @@ class TestProvider extends ChangeNotifier {
   /// Save test result to CSV file automatically
   Future<void> _saveResultToCSV(TestResult result) async {
     try {
-      // On Windows, use Downloads folder for easier access
-      // On other platforms, use application documents directory
-      Directory directory;
-      try {
-        // Try to get Downloads directory (more accessible on Windows)
-        final downloadsDir = await getDownloadsDirectory();
-        if (downloadsDir != null) {
-          directory = downloadsDir;
-        } else {
-          // Fallback to application documents directory
-          directory = await getApplicationDocumentsDirectory();
-        }
-      } catch (e) {
-        // Fallback to application documents directory
-        directory = await getApplicationDocumentsDirectory();
-      }
+      Directory testDataDir;
 
-      final testDataDir =
-          Directory(path.join(directory.path, 'tremor_test_data'));
+      // Platform-specific path handling
+      if (kIsWeb) {
+        // For web, we can't save to file system directly
+        // This will need special handling (download trigger)
+        // For now, skip file saving on web
+        debugPrint('CSV saving skipped on web platform');
+        return;
+      } else if (Platform.isWindows) {
+        // Use hardcoded path for Windows
+        const hardcodedPath = r'C:\Users\User\GitHub\BCI_Lab\tremor_test_data';
+        testDataDir = Directory(hardcodedPath);
+      } else {
+        // For mobile platforms (Android/iOS), use application documents directory
+        final directory = await getApplicationDocumentsDirectory();
+        testDataDir = Directory(path.join(directory.path, 'tremor_test_data'));
+      }
 
       // Create directory if it doesn't exist
       if (!await testDataDir.exists()) {
@@ -284,21 +282,19 @@ class TestProvider extends ChangeNotifier {
   /// Get the path where CSV files are saved (for user reference)
   Future<String> getCSVSavePath() async {
     try {
-      Directory directory;
-      try {
-        final downloadsDir = await getDownloadsDirectory();
-        if (downloadsDir != null) {
-          directory = downloadsDir;
-        } else {
-          directory = await getApplicationDocumentsDirectory();
-        }
-      } catch (e) {
-        directory = await getApplicationDocumentsDirectory();
+      if (kIsWeb) {
+        return 'Web platform - files are downloaded';
+      } else if (Platform.isWindows) {
+        // Use hardcoded path for Windows
+        const hardcodedPath = r'C:\Users\User\GitHub\BCI_Lab\tremor_test_data';
+        return hardcodedPath;
+      } else {
+        // For mobile platforms (Android/iOS), use application documents directory
+        final directory = await getApplicationDocumentsDirectory();
+        final testDataDir =
+            Directory(path.join(directory.path, 'tremor_test_data'));
+        return testDataDir.path;
       }
-
-      final testDataDir =
-          Directory(path.join(directory.path, 'tremor_test_data'));
-      return testDataDir.path;
     } catch (e) {
       return 'Unable to determine path: $e';
     }

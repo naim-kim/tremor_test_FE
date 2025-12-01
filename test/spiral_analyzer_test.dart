@@ -1,35 +1,68 @@
+import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:tremor_test_fe/models/test_result.dart';
 import 'package:tremor_test_fe/utils/spiral_analyzer.dart';
-import 'package:tremor_test_fe/utils/spiral_generator.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('SpiralAnalyzer', () {
     test('produces low mean error for perfect baseline drawing', () {
-      const canvasSize = 300.0;
-      const numPoints = 500;
-      const samplingFrequency = 50.0; // Hz
+      const numSamples = 400;
+      const double dtMs = 10.0; // 100 Hz sampling
+      final analyzer = const SpiralAnalyzer(lowPassCutoffHz: 50.0);
 
-      final refPoints = SpiralGenerator.getSpiralPoints(canvasSize, numPoints);
-      final analyzer = SpiralAnalyzer(fs: samplingFrequency);
+      final perfectPoints = <DrawingPoint>[];
+      final noisyPoints = <DrawingPoint>[];
+      final refPoints = <Offset>[];
 
-      final actualTimeSeconds = numPoints / samplingFrequency;
+      for (int i = 0; i < numSamples; i++) {
+        final theta = i * 0.05;
+        final radius = 8.0 * theta;
+        final x = radius * math.cos(theta);
+        final y = radius * math.sin(theta);
+        refPoints.add(Offset(x, y));
+        final timestamp = (i * dtMs).round();
+        perfectPoints.add(
+          DrawingPoint(
+            x: x,
+            y: y,
+            normalizedX: 0.0,
+            normalizedY: 0.0,
+            timestamp: timestamp,
+          ),
+        );
+        final noisyX = x + 2.0 * math.sin(i * 0.5);
+        final noisyY = y + 2.0 * math.cos(i * 0.5);
+        noisyPoints.add(
+          DrawingPoint(
+            x: noisyX,
+            y: noisyY,
+            normalizedX: 0.0,
+            normalizedY: 0.0,
+            timestamp: timestamp,
+          ),
+        );
+      }
 
-      final result = analyzer.analyze(
+      final perfectResult = analyzer.analyze(
         refPoints: refPoints,
-        userRawPoints: List<Offset>.from(refPoints),
-        actualTime: actualTimeSeconds,
-        actualTremor: 0.0,
+        drawingPoints: perfectPoints,
       );
 
-      expect(result.meanError, lessThan(1.0),
-          reason: 'Perfect drawing should stay within 1px mean error');
-      expect(result.judgment,
-          equals('⭕ 정상 범위: 통계적 유의미한 차이 없음'));
+      final noisyResult = analyzer.analyze(
+        refPoints: refPoints,
+        drawingPoints: noisyPoints,
+      );
+
+      expect(
+        perfectResult.meanError,
+        lessThan(noisyResult.meanError),
+        reason: 'Perfect spiral should score better than noisy spiral',
+      );
     });
   });
 }

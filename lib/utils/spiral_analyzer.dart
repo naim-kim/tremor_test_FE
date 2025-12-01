@@ -1,370 +1,608 @@
 import 'dart:math' as math;
-import 'package:flutter/material.dart';
 
-/// Spiral analysis result matching data engineer's code structure
+import 'package:flutter/material.dart';
+import 'package:scidart/numdart.dart';
+import 'package:scidart/scidart.dart';
+
+import '../models/test_result.dart';
+
+/// Spiral analysis result following the updated MATLAB-aligned pipeline.
 class SpiralAnalysisResult {
   final double meanError;
   final double maxError;
-  final String judgment; // Result message (focus on this instead of score)
-  final double optimalFc;
+  final String judgment;
+  final double pairingSlope; // Estimated a_ref from pairing module
   final double dominantTremorFreq;
+  final double avgSpeed;
+  final double totalTime;
+  final double tremorAmplitude;
+  final List<double> distanceErrors;
   final List<Offset> filteredPoints;
+  final List<Offset> idealSpiral;
 
-  SpiralAnalysisResult({
+  const SpiralAnalysisResult({
     required this.meanError,
     required this.maxError,
     required this.judgment,
-    required this.optimalFc,
+    required this.pairingSlope,
     required this.dominantTremorFreq,
+    required this.avgSpeed,
+    required this.totalTime,
+    required this.tremorAmplitude,
+    required this.distanceErrors,
     required this.filteredPoints,
+    required this.idealSpiral,
   });
 }
 
-/// Spiral Analyzer matching data engineer's MATLAB code structure
+/// Spiral Analyzer that mirrors the MATLAB reference implementation.
 class SpiralAnalyzer {
-  final double fs; // Sampling frequency (Hz)
-  final double
-      normalMeanThreshold; // Normal person's mean error threshold (pixels)
-  final double differenceThreshold; // Judgment threshold (pixels)
-  final int filterOrder;
+  final double upsampleFs; // Target sampling rate for interpolation (Hz)
+  final double lowPassCutoffHz; // Low-pass filter cutoff
+  final int butterworthOrder;
+  final double normalMeanThreshold; // Normal mean error threshold (px)
+  final double differenceThreshold; // Margin before flagging abnormality
 
-  SpiralAnalyzer({
-    required this.fs,
-    this.normalMeanThreshold = 15.0, // Pixel unit example value
-    this.differenceThreshold = 5.0, // Pixel unit example value
-    this.filterOrder = 6,
+  const SpiralAnalyzer({
+    this.upsampleFs = 1000.0,
+    this.lowPassCutoffHz = 3.0,
+    this.butterworthOrder = 2,
+    this.normalMeanThreshold = 15.0,
+    this.differenceThreshold = 5.0,
   });
 
-  /// Main analysis method matching data engineer's code
   SpiralAnalysisResult analyze({
     required List<Offset> refPoints,
-    required List<Offset> userRawPoints,
-    required double actualTime, // Test completion time (seconds)
-    required double
-        actualTremor, // Tremor intensity (px) - from app measurement
+    required List<DrawingPoint> drawingPoints,
   }) {
-    // 3.1 Raw data separation
-    final xRaw = userRawPoints.map((p) => p.dx).toList();
-    final yRaw = userRawPoints.map((p) => p.dy).toList();
-    final numPoints = xRaw.length;
-
-    // 3.2 FFT-based Fc auto-optimization (Section 3)
-    final xSpectrum = _calculateFFT(xRaw);
-    final ySpectrum = _calculateFFT(yRaw);
-    final dominantFreq = _findDominantFreq(xSpectrum, ySpectrum);
-
-    // Optimize Fc (cutoff frequency)
-    double fcOptimized = math.max(dominantFreq - 1.0, 1.0);
-    fcOptimized = math.min(fcOptimized, fs / 2 - 0.1);
-
-    // Safety check: if Fc >= dominant freq, adjust
-    if (fcOptimized >= dominantFreq) {
-      fcOptimized = math.max(dominantFreq * 0.5, 2.0);
+    if (refPoints.isEmpty) {
+      throw ArgumentError('Reference points cannot be empty');
+    }
+    if (drawingPoints.length < 5) {
+      throw ArgumentError('At least 5 drawing points are required');
     }
 
-    // 3.3 Filtering (Section 4)
-    final xFiltered = _applyZeroPhaseFilter(xRaw, fcOptimized);
-    final yFiltered = _applyZeroPhaseFilter(yRaw, fcOptimized);
+    final rawData = _buildRawData(refPoints, drawingPoints);
 
-    // 3.4 Data trimming (assuming filtfilt implementation)
-    final trimSamples = filterOrder * 3;
-    final startIdx = trimSamples;
-    final endIdx = numPoints - trimSamples;
+    final refRawX = Array(rawData.map((e) => e[0]).toList());
+    final refRawY = Array(rawData.map((e) => e[1]).toList());
+    final userRawX = Array(rawData.map((e) => e[2]).toList());
+    final userRawY = Array(rawData.map((e) => e[3]).toList());
+    final timestamp = Array(rawData.map((e) => e[4]).toList());
 
-    if (endIdx <= startIdx || endIdx > xFiltered.length) {
-      // Not enough data after trimming, use all data
-      return _analyzeWithoutTrimming(
-        refPoints,
-        userRawPoints,
-        xFiltered,
-        yFiltered,
-        fcOptimized,
-        dominantFreq,
-      );
+    final tRawNorm =
+        Array(timestamp.map((value) => value - timestamp[0]).toList());
+
+    final double tEnd = tRawNorm.isEmpty ? 0 : tRawNorm.last;
+    final double dtMs = 1000.0 / upsampleFs;
+    final List<double> tUniformList = [];
+    for (double t = 0; t <= tEnd; t += dtMs) {
+      tUniformList.add(t);
     }
-
-    final xUse = xFiltered.sublist(startIdx, endIdx);
-    final yUse = yFiltered.sublist(startIdx, endIdx);
-    final refXUse =
-        refPoints.map((p) => p.dx).toList().sublist(startIdx, endIdx);
-    final refYUse =
-        refPoints.map((p) => p.dy).toList().sublist(startIdx, endIdx);
-
-    // 3.5 Error calculation (Section 5)
-    // For same-length data, directly compare
-    final errors = <double>[];
-    for (int i = 0; i < refXUse.length && i < xUse.length; i++) {
-      final diffX = xUse[i] - refXUse[i];
-      final diffY = yUse[i] - refYUse[i];
-      errors.add(math.sqrt(diffX * diffX + diffY * diffY));
+    if (tUniformList.length < 2) {
+      tUniformList.add(tEnd + dtMs);
     }
+    final tUniform = Array(tUniformList);
 
-    // 3.6 Statistics calculation (with NaN handling)
-    final validErrors = errors.where((e) => !e.isNaN && e.isFinite).toList();
-    final meanError = validErrors.isEmpty
-        ? 0.0
-        : validErrors.reduce((a, b) => a + b) / validErrors.length;
-    final maxError = validErrors.isEmpty ? 0.0 : validErrors.reduce(math.max);
+    final userXUp = _interp1(tRawNorm, userRawX, tUniform);
+    final userYUp = _interp1(tRawNorm, userRawY, tUniform);
 
-    // 3.7 Judgment logic (Section 7) - Focus on result message
-    final judgment = _getJudgment(meanError);
-
-    // 3.8 Convert filtered results to Offset list
-    final filteredPoints = List.generate(
-      xUse.length,
-      (i) => Offset(xUse[i], yUse[i]),
+    final refIdxRaw = Array(
+      List<double>.generate(refRawX.length, (i) => i.toDouble()),
     );
+    final refIdxNew = _linspace(0, refRawX.length - 1.0, tUniform.length);
+    final refXUp = _interp1(refIdxRaw, refRawX, refIdxNew);
+    final refYUp = _interp1(refIdxRaw, refRawY, refIdxNew);
+
+    final filterCoeffs =
+        _designButterworthLowPass(butterworthOrder, lowPassCutoffHz, upsampleFs);
+    final userXFilt = _filtfilt(filterCoeffs, userXUp);
+    final userYFilt = _filtfilt(filterCoeffs, userYUp);
+
+    final refXFilt = _filtfilt(filterCoeffs, refXUp);
+    final refYFilt = _filtfilt(filterCoeffs, refYUp);
+
+    final double refCenterX = (_arrayMax(refXFilt) + _arrayMin(refXFilt)) / 2;
+    final double refCenterY = (_arrayMax(refYFilt) + _arrayMin(refYFilt)) / 2;
+
+    final refX = _subtractScalar(refXFilt, refCenterX);
+    final refY = _subtractScalar(refYFilt, refCenterY);
+    final userX = _subtractScalar(userXFilt, refCenterX);
+    final userY = _subtractScalar(userYFilt, refCenterY);
+
+    final tremorX = _subtractScalar(userXUp, refCenterX);
+    final tremorY = _subtractScalar(userYUp, refCenterY);
+
+    final pairingRes = calcPairing(userX, userY, refX, refY);
+    final speedRes = calcSpeed(userX, userY, tUniform);
+    final tremorRes = calcTremor(tremorX, tremorY, upsampleFs);
+
+    final Array distError = pairingRes['dist_error'] as Array;
+    final List<double> distErrorList =
+        List<double>.from(distError.map((e) => e));
+    final double meanError =
+        distErrorList.isEmpty ? 0.0 : distErrorList.reduce((a, b) => a + b) / distErrorList.length;
+    final double maxError =
+        distErrorList.isEmpty ? 0.0 : distErrorList.reduce(math.max);
+
+    final List<Offset> filteredPoints =
+        List<Offset>.generate(userX.length, (i) => Offset(userX[i], userY[i]));
+
+    final Array xPair = pairingRes['x_pair'] as Array;
+    final Array yPair = pairingRes['y_pair'] as Array;
+    final List<Offset> idealPoints =
+        List<Offset>.generate(xPair.length, (i) => Offset(xPair[i], yPair[i]));
+
+    final String judgment = _getJudgment(meanError);
 
     return SpiralAnalysisResult(
       meanError: meanError,
       maxError: maxError,
       judgment: judgment,
-      optimalFc: fcOptimized,
-      dominantTremorFreq: dominantFreq,
+      pairingSlope: pairingRes['a_ref'] as double,
+      dominantTremorFreq: tremorRes['peak_freq'] as double,
+      avgSpeed: speedRes['avg_speed'] as double,
+      totalTime: speedRes['total_time'] as double,
+      tremorAmplitude: tremorRes['tremor_amp'] as double,
+      distanceErrors: distErrorList,
       filteredPoints: filteredPoints,
+      idealSpiral: idealPoints,
     );
   }
 
-  /// Fallback analysis when trimming would leave insufficient data
-  SpiralAnalysisResult _analyzeWithoutTrimming(
+  List<List<double>> _buildRawData(
     List<Offset> refPoints,
-    List<Offset> userRawPoints,
-    List<double> xFiltered,
-    List<double> yFiltered,
-    double fcOptimized,
-    double dominantFreq,
+    List<DrawingPoint> drawingPoints,
   ) {
-    final errors = <double>[];
-    final minLength = math.min(
-      math.min(refPoints.length, userRawPoints.length),
-      math.min(xFiltered.length, yFiltered.length),
+    final resampledRef = _resampleReference(refPoints, drawingPoints.length);
+    final rawData = <List<double>>[];
+    for (int i = 0; i < drawingPoints.length; i++) {
+      final ref = resampledRef[i];
+      final user = drawingPoints[i];
+      rawData.add([
+        ref.dx,
+        ref.dy,
+        user.x,
+        user.y,
+        user.timestamp.toDouble(),
+      ]);
+    }
+    return rawData;
+  }
+
+  List<Offset> _resampleReference(List<Offset> refPoints, int targetLength) {
+    if (targetLength <= 1) {
+      return [refPoints.first];
+    }
+
+    final List<Offset> resampled = [];
+    final int maxIndex = refPoints.length - 1;
+
+    final int denominator = targetLength - 1;
+    for (int i = 0; i < targetLength; i++) {
+      final double ratio = denominator <= 0 ? 0.0 : i / denominator;
+      final double scaled = ratio * maxIndex;
+      final int low = scaled.floor().clamp(0, maxIndex).toInt();
+      final int high = scaled.ceil().clamp(0, maxIndex).toInt();
+
+      if (low == high) {
+        resampled.add(refPoints[low]);
+        continue;
+      }
+
+      final double t = scaled - low;
+      final double x =
+          refPoints[low].dx + (refPoints[high].dx - refPoints[low].dx) * t;
+      final double y =
+          refPoints[low].dy + (refPoints[high].dy - refPoints[low].dy) * t;
+      resampled.add(Offset(x, y));
+    }
+
+    return resampled;
+  }
+
+  // --------------------------------------------------------------------------
+  // MATLAB-aligned modules
+  // --------------------------------------------------------------------------
+
+  static Map<String, dynamic> calcPairing(
+    Array userX,
+    Array userY,
+    Array refX,
+    Array refY,
+  ) {
+    final thetaRef = _unwrap(_atan2(refY, refX));
+    final rRef = _sqrt(_add(_multiply(refX, refX), _multiply(refY, refY)));
+
+    List<bool> validIdx = thetaRef.map((t) => t.abs() > 0.5).toList();
+    if (validIdx.where((v) => v).length < 10) {
+      validIdx = List<bool>.filled(thetaRef.length, true);
+    }
+
+    double sumThetaR = 0.0;
+    double sumTheta2 = 0.0;
+    for (int i = 0; i < thetaRef.length; i++) {
+      if (validIdx[i]) {
+        sumThetaR += thetaRef[i] * rRef[i];
+        sumTheta2 += thetaRef[i] * thetaRef[i];
+      }
+    }
+    final double aRef = sumTheta2 == 0 ? 0.0 : sumThetaR / sumTheta2;
+
+    final thetaUser = _unwrap(_atan2(userY, userX));
+    final Array rPairIdeal =
+        Array(thetaUser.map((t) => aRef * t).toList(growable: false));
+    final Array xPair = _multiply(rPairIdeal, _cos(thetaUser));
+    final Array yPair = _multiply(rPairIdeal, _sin(thetaUser));
+
+    final diffX = _subtract(userX, xPair);
+    final diffY = _subtract(userY, yPair);
+    final distError =
+        _sqrt(_add(_multiply(diffX, diffX), _multiply(diffY, diffY)));
+    final double meanError = mean(distError);
+
+    return {
+      'mean_error': meanError,
+      'dist_error': distError,
+      'x_pair': xPair,
+      'y_pair': yPair,
+      'a_ref': aRef,
+    };
+  }
+
+  static Map<String, dynamic> calcSpeed(
+    Array userX,
+    Array userY,
+    Array tUniform,
+  ) {
+    final dtArray = _diff(tUniform);
+    final double dt = dtArray.isEmpty ? 0.0 : mean(Array(dtArray)) / 1000.0;
+
+    final vx = _gradient(userX, dt);
+    final vy = _gradient(userY, dt);
+    final speedVec = _sqrt(_add(_multiply(vx, vx), _multiply(vy, vy)));
+    final double avgSpeed = mean(speedVec);
+    final double totalTime =
+        tUniform.isEmpty ? 0.0 : (tUniform.last - tUniform.first) / 1000.0;
+
+    return {
+      'avg_speed': avgSpeed.isNaN ? 0.0 : avgSpeed,
+      'total_time': totalTime,
+      'speed_vec': speedVec,
+    };
+  }
+
+  static Map<String, dynamic> calcTremor(
+    Array tremorX,
+    Array tremorY,
+    double fs,
+  ) {
+    var tremorSig =
+        _sqrt(_add(_multiply(tremorX, tremorX), _multiply(tremorY, tremorY)));
+    tremorSig = _detrend(tremorSig);
+
+    final int n = tremorSig.length;
+    final cSig = ArrayComplex(
+      List.generate(n, (i) => Complex(real: tremorSig[i], imaginary: 0.0)),
     );
+    final yFFT = fft(cSig);
 
-    for (int i = 0; i < minLength; i++) {
-      final diffX = xFiltered[i] - refPoints[i].dx;
-      final diffY = yFiltered[i] - refPoints[i].dy;
-      errors.add(math.sqrt(diffX * diffX + diffY * diffY));
+    Array p2 = _absComplex(yFFT);
+    p2 = _divideScalar(p2, n.toDouble());
+
+    final int halfLen = (n / 2).floor() + 1;
+    final p1 = Array(p2.sublist(0, halfLen));
+    for (int i = 1; i < p1.length - 1; i++) {
+      p1[i] = p1[i] * 2;
     }
 
-    final validErrors = errors.where((e) => !e.isNaN && e.isFinite).toList();
-    final meanError = validErrors.isEmpty
-        ? 0.0
-        : validErrors.reduce((a, b) => a + b) / validErrors.length;
-    final maxError = validErrors.isEmpty ? 0.0 : validErrors.reduce(math.max);
+    final f =
+        Array(List<double>.generate(halfLen, (i) => fs * i.toDouble() / n));
 
-    final judgment = _getJudgment(meanError);
+    const double minFreq = 3.0;
+    const double maxFreq = 20.0;
 
-    final filteredPoints = List.generate(
-      minLength,
-      (i) => Offset(xFiltered[i], yFiltered[i]),
+    double maxVal = 0.0;
+    double peakFreq = 0.0;
+    for (int i = 0; i < f.length; i++) {
+      if (f[i] >= minFreq && f[i] <= maxFreq) {
+        if (p1[i] > maxVal) {
+          maxVal = p1[i];
+          peakFreq = f[i];
+        }
+      }
+    }
+
+    return {
+      'tremor_amp': maxVal,
+      'peak_freq': peakFreq,
+      'f': f,
+      'P1': p1,
+    };
+  }
+
+  // --------------------------------------------------------------------------
+  // Helper utilities
+  // --------------------------------------------------------------------------
+
+  static Array _atan2(Array y, Array x) {
+    return Array(List<double>.generate(y.length, (i) => math.atan2(y[i], x[i])));
+  }
+
+  static Array _sqrt(Array x) {
+    return Array(x.map((value) => math.sqrt(value)).toList(growable: false));
+  }
+
+  static Array _cos(Array x) {
+    return Array(x.map((value) => math.cos(value)).toList(growable: false));
+  }
+
+  static Array _sin(Array x) {
+    return Array(x.map((value) => math.sin(value)).toList(growable: false));
+  }
+
+  static Array _unwrap(Array theta) {
+    final diffs = _diff(theta);
+    final unwrapped = List<double>.from(theta);
+    double correction = 0.0;
+    for (int i = 0; i < diffs.length; i++) {
+      final double d = diffs[i];
+      if (d > math.pi) correction -= 2 * math.pi;
+      if (d < -math.pi) correction += 2 * math.pi;
+      unwrapped[i + 1] += correction;
+    }
+    return Array(unwrapped);
+  }
+
+  static List<double> _diff(Array x) {
+    final res = <double>[];
+    for (int i = 0; i < x.length - 1; i++) {
+      res.add(x[i + 1] - x[i]);
+    }
+    return res;
+  }
+
+  static Array _gradient(Array f, double h) {
+    final g = List<double>.filled(f.length, 0.0);
+    final int n = f.length;
+    if (n > 1) {
+      g[0] = h == 0 ? 0.0 : (f[1] - f[0]) / h;
+      g[n - 1] = h == 0 ? 0.0 : (f[n - 1] - f[n - 2]) / h;
+    }
+    for (int i = 1; i < n - 1; i++) {
+      g[i] = h == 0 ? 0.0 : (f[i + 1] - f[i - 1]) / (2 * h);
+    }
+    return Array(g);
+  }
+
+  static Array _interp1(Array x, Array y, Array xi) {
+    final yi = <double>[];
+    for (final val in xi) {
+      int idx = -1;
+      for (int i = 0; i < x.length - 1; i++) {
+        if (val >= x[i] && val <= x[i + 1]) {
+          idx = i;
+          break;
+        }
+      }
+
+      if (idx != -1) {
+        final double denom = x[idx + 1] - x[idx];
+        final double t = denom == 0 ? 0.0 : (val - x[idx]) / denom;
+        yi.add(y[idx] + t * (y[idx + 1] - y[idx]));
+      } else {
+        if (val < x[0]) {
+          yi.add(y[0]);
+        } else {
+          yi.add(y.last);
+        }
+      }
+    }
+    return Array(yi);
+  }
+
+  static Array _linspace(double start, double end, int num) {
+    if (num <= 1) {
+      return Array([start]);
+    }
+    final double step = (end - start) / (num - 1);
+    return Array(
+      List<double>.generate(num, (i) => start + i * step),
     );
-
-    return SpiralAnalysisResult(
-      meanError: meanError,
-      maxError: maxError,
-      judgment: judgment,
-      optimalFc: fcOptimized,
-      dominantTremorFreq: dominantFreq,
-      filteredPoints: filteredPoints,
-    );
   }
 
-  // =========================================================================
-  // 2. Signal Processing Core Functions
-  // =========================================================================
-
-  /// Calculate FFT and return [frequency, amplitude] pairs
-  /// Uses existing FFT implementation from FFTAnalyzer
-  List<MapEntry<double, double>> _calculateFFT(List<double> data) {
-    if (data.isEmpty) return [];
-
-    // Convert to complex numbers
-    final List<ComplexNum> complexData =
-        data.map((v) => ComplexNum(v, 0)).toList();
-
-    // Use power-of-2 FFT
-    final n = data.length;
-    int fftSize = 1;
-    while (fftSize < n) {
-      fftSize *= 2;
+  static Array _detrend(Array y) {
+    final int n = y.length;
+    final x = Array(List<double>.generate(n, (i) => i.toDouble()));
+    double sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+    for (int i = 0; i < n; i++) {
+      sumX += x[i];
+      sumY += y[i];
+      sumXY += x[i] * y[i];
+      sumX2 += x[i] * x[i];
     }
-
-    // Pad to power of 2
-    while (complexData.length < fftSize) {
-      complexData.add(ComplexNum(0, 0));
-    }
-
-    // Perform FFT
-    final fftResult = _fft(complexData);
-
-    // Convert to magnitude spectrum (single-sided)
-    final L = fftSize;
-    final spectrum = <MapEntry<double, double>>[];
-
-    // DC component
-    spectrum.add(MapEntry(0.0, fftResult[0].magnitude / L));
-
-    // Positive frequencies (single-sided)
-    for (int i = 1; i < L ~/ 2; i++) {
-      final freq = i * fs / L;
-      final amplitude = 2 * fftResult[i].magnitude / L;
-      spectrum.add(MapEntry(freq, amplitude));
-    }
-
-    // Nyquist frequency
-    if (L % 2 == 0) {
-      final nyquistFreq = fs / 2;
-      final amplitude = fftResult[L ~/ 2].magnitude / L;
-      spectrum.add(MapEntry(nyquistFreq, amplitude));
-    }
-
-    return spectrum;
+    final double denom = n * sumX2 - sumX * sumX;
+    final double slope = denom == 0 ? 0.0 : (n * sumXY - sumX * sumY) / denom;
+    final double intercept = (sumY - slope * sumX) / n;
+    final trend =
+        Array(List<double>.generate(n, (i) => slope * i + intercept));
+    return _subtract(y, trend);
   }
 
-  /// Cooley-Tukey FFT algorithm (from FFTAnalyzer)
-  List<ComplexNum> _fft(List<ComplexNum> x) {
-    final n = x.length;
-
-    // Base case
-    if (n == 1) return [x[0]];
-
-    // Check if power of 2
-    if (n % 2 != 0) {
-      throw ArgumentError('n is not a power of 2');
+  static Array _filtfilt(_BiquadCoefficients coeffs, Array data) {
+    final int padLen = math.min(data.length - 1, 20);
+    if (padLen <= 0) {
+      final forward = _applyBiquad(data, coeffs);
+      final revForward = Array(forward.reversed.toList());
+      final backward = _applyBiquad(revForward, coeffs);
+      return Array(backward.reversed.toList());
     }
 
-    // FFT of even terms
-    final List<ComplexNum> even = [];
-    for (int k = 0; k < n ~/ 2; k++) {
-      even.add(x[2 * k]);
-    }
-    final List<ComplexNum> q = _fft(even);
+    final startPad = _buildPadStart(data, padLen);
+    final endPad = _buildPadEnd(data, padLen);
+    final padded = [
+      ...startPad,
+      ...List<double>.from(data),
+      ...endPad,
+    ];
 
-    // FFT of odd terms
-    final List<ComplexNum> odd = [];
-    for (int k = 0; k < n ~/ 2; k++) {
-      odd.add(x[2 * k + 1]);
-    }
-    final List<ComplexNum> r = _fft(odd);
-
-    // Combine
-    final List<ComplexNum> y = List.filled(n, ComplexNum(0, 0));
-    for (int k = 0; k < n ~/ 2; k++) {
-      final kth = -2 * k * math.pi / n;
-      final wk = ComplexNum(math.cos(kth), math.sin(kth));
-      y[k] = q[k] + (wk * r[k]);
-      y[k + n ~/ 2] = q[k] - (wk * r[k]);
-    }
-
-    return y;
+    final paddedArray = Array(padded);
+    final forward = _applyBiquad(paddedArray, coeffs);
+    final revForward = Array(forward.reversed.toList());
+    final backward = _applyBiquad(revForward, coeffs);
+    final filtered = Array(backward.reversed.toList());
+    return Array(filtered.sublist(padLen, padLen + data.length));
   }
 
-  /// Apply zero-phase filter (Butterworth LPF approximation)
-  /// Note: Full Butterworth implementation requires filter design library
-  /// This is a simplified approximation using moving average for now
-  List<double> _applyZeroPhaseFilter(List<double> data, double fc) {
-    // Simplified implementation: moving average filter as approximation
-    // In production, this should use proper Butterworth filter with filtfilt
-    final windowSize = (fs / fc).round().clamp(3, data.length ~/ 4);
-    return _movingAverageFilter(data, windowSize);
-  }
-
-  /// Moving average filter (temporary replacement)
-  /// Note: This is less accurate than proper Butterworth filtfilt
-  List<double> _movingAverageFilter(List<double> data, int window) {
-    if (window <= 1 || data.isEmpty) return List<double>.from(data);
-
-    final filtered = List<double>.filled(data.length, 0.0);
-    final halfWindow = window ~/ 2;
-
+  static Array _applyBiquad(Array data, _BiquadCoefficients coeffs) {
+    final output = List<double>.filled(data.length, 0.0);
+    double x1 = 0.0, x2 = 0.0, y1 = 0.0, y2 = 0.0;
     for (int i = 0; i < data.length; i++) {
-      double sum = 0.0;
-      int count = 0;
-
-      for (int j = math.max(0, i - halfWindow);
-          j < math.min(data.length, i + halfWindow + 1);
-          j++) {
-        sum += data[j];
-        count++;
-      }
-
-      filtered[i] = count > 0 ? sum / count : data[i];
+      final double x0 = data[i];
+      final double y0 = coeffs.b0 * x0 +
+          coeffs.b1 * x1 +
+          coeffs.b2 * x2 -
+          coeffs.a1 * y1 -
+          coeffs.a2 * y2;
+      output[i] = y0;
+      x2 = x1;
+      x1 = x0;
+      y2 = y1;
+      y1 = y0;
     }
-
-    return filtered;
+    return Array(output);
   }
 
-  // =========================================================================
-  // 4. Helper Functions
-  // =========================================================================
+  static List<double> _buildPadStart(Array data, int padLen) {
+    final pad = <double>[];
+    for (int i = padLen; i >= 1; i--) {
+      pad.add(2 * data[0] - data[i]);
+    }
+    return pad;
+  }
 
-  /// Find dominant tremor frequency from FFT spectrum
-  double _findDominantFreq(
-    List<MapEntry<double, double>> xSpectrum,
-    List<MapEntry<double, double>> ySpectrum,
+  static List<double> _buildPadEnd(Array data, int padLen) {
+    final pad = <double>[];
+    for (int i = data.length - 2; i >= data.length - padLen - 1; i--) {
+      pad.add(2 * data.last - data[i]);
+    }
+    return pad;
+  }
+
+  _BiquadCoefficients _designButterworthLowPass(
+    int order,
+    double cutoffHz,
+    double fs,
   ) {
-    double dominantFreq = 0.0;
-    double maxAmplitude = 0.0;
-    const minFreq = 1.0; // Exclude low-frequency movement below 1Hz
-
-    // Find peak in X-axis
-    for (var entry in xSpectrum) {
-      if (entry.key > minFreq && entry.value > maxAmplitude) {
-        maxAmplitude = entry.value;
-        dominantFreq = entry.key;
-      }
+    if (order != 2) {
+      throw ArgumentError('Only 2nd-order Butterworth filters are supported');
     }
 
-    // Find peak in Y-axis (update if stronger)
-    for (var entry in ySpectrum) {
-      if (entry.key > minFreq && entry.value > maxAmplitude) {
-        maxAmplitude = entry.value;
-        dominantFreq = entry.key;
-      }
-    }
+    final double w0 = 2 * math.pi * cutoffHz / fs;
+    final double cosw0 = math.cos(w0);
+    final double sinw0 = math.sin(w0);
+    final double q = math.sqrt(2) / 2;
+    final double alpha = sinw0 / (2 * q);
 
-    // If no dominant frequency found, return default
-    if (dominantFreq == 0.0) {
-      return 5.0; // Default tremor frequency (Hz)
-    }
+    double b0 = (1 - cosw0) / 2;
+    double b1 = 1 - cosw0;
+    double b2 = (1 - cosw0) / 2;
+    double a0 = 1 + alpha;
+    double a1 = -2 * cosw0;
+    double a2 = 1 - alpha;
 
-    return dominantFreq;
+    b0 /= a0;
+    b1 /= a0;
+    b2 /= a0;
+    a1 /= a0;
+    a2 /= a0;
+
+    return _BiquadCoefficients(b0, b1, b2, a1, a2);
   }
 
-  /// Get judgment message based on mean error
-  /// Focus on result message rather than score
+  static Array _absComplex(ArrayComplex complexArray) {
+    return Array(
+      List<double>.generate(
+        complexArray.length,
+        (i) {
+          final value = complexArray[i];
+          return math.sqrt(value.real * value.real + value.imaginary * value.imaginary);
+        },
+      ),
+    );
+  }
+
+  static Array _subtractScalar(Array data, double scalar) {
+    return Array(data.map((value) => value - scalar).toList(growable: false));
+  }
+
+  static Array _subtract(Array a, Array b) {
+    return Array(
+      List<double>.generate(a.length, (i) => a[i] - b[i]),
+    );
+  }
+
+  static double _arrayMin(Array data) {
+    double minValue = data[0];
+    for (int i = 1; i < data.length; i++) {
+      if (data[i] < minValue) {
+        minValue = data[i];
+      }
+    }
+    return minValue;
+  }
+
+  static double _arrayMax(Array data) {
+    double maxValue = data[0];
+    for (int i = 1; i < data.length; i++) {
+      if (data[i] > maxValue) {
+        maxValue = data[i];
+      }
+    }
+    return maxValue;
+  }
+
+  static Array _add(Array a, Array b) {
+    return Array(
+      List<double>.generate(a.length, (i) => a[i] + b[i]),
+    );
+  }
+
+  static Array _multiply(Array a, Array b) {
+    return Array(
+      List<double>.generate(a.length, (i) => a[i] * b[i]),
+    );
+  }
+
+  static Array _divideScalar(Array a, double scalar) {
+    if (scalar == 0) {
+      return Array(List<double>.filled(a.length, 0.0));
+    }
+    return Array(
+      List<double>.generate(a.length, (i) => a[i] / scalar),
+    );
+  }
+
   String _getJudgment(double meanError) {
     if (meanError > (normalMeanThreshold + differenceThreshold)) {
       return '⚠️ 비정상 경로 패턴: 운동 기능 장애가 유의미하게 의심됩니다.';
-    } else {
-      return '⭕ 정상 범위: 통계적 유의미한 차이 없음';
     }
+    return '⭕ 정상 범위: 통계적 유의미한 차이 없음';
   }
 }
 
-/// Complex number class for FFT (from FFTAnalyzer)
-class ComplexNum {
-  final double real;
-  final double imaginary;
+class _BiquadCoefficients {
+  final double b0;
+  final double b1;
+  final double b2;
+  final double a1;
+  final double a2;
 
-  ComplexNum(this.real, this.imaginary);
-
-  double get magnitude => math.sqrt(real * real + imaginary * imaginary);
-
-  double get phase => math.atan2(imaginary, real);
-
-  ComplexNum operator +(ComplexNum other) {
-    return ComplexNum(real + other.real, imaginary + other.imaginary);
-  }
-
-  ComplexNum operator -(ComplexNum other) {
-    return ComplexNum(real - other.real, imaginary - other.imaginary);
-  }
-
-  ComplexNum operator *(ComplexNum other) {
-    return ComplexNum(
-      real * other.real - imaginary * other.imaginary,
-      real * other.imaginary + imaginary * other.real,
-    );
-  }
+  const _BiquadCoefficients(
+    this.b0,
+    this.b1,
+    this.b2,
+    this.a1,
+    this.a2,
+  );
 }

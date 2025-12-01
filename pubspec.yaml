@@ -38,6 +38,7 @@ dependencies:
   # Utilities
   intl: ^0.18.1
   uuid: ^4.2.1
+  scidart: ^0.0.2-dev.12
 
 dev_dependencies:
   flutter_test:
