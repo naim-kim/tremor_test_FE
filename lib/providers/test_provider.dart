@@ -132,16 +132,18 @@ class TestProvider extends ChangeNotifier {
 
   /// Calculate score for spiral test (simplified, focus on message)
   double _calculateSpiralScore(SpiralAnalysisResult result) {
-    // Simple scoring based on mean error
-    // Lower mean error = higher score
-    // But remember: focus on result message, not score
-    if (result.meanError <= 15.0) {
-      return 85.0; // Good
-    } else if (result.meanError <= 20.0) {
+    // Scoring based on relative mean error so that scores are
+    // more device- and scale-independent.
+    // relativeMeanError is meanError normalized by spiral radius (0~1+).
+    final rel = result.relativeMeanError;
+
+    if (rel <= 0.05) {
+      return 85.0; // Good: <= 5% of spiral radius
+    } else if (rel <= 0.08) {
       return 70.0; // Fair
-    } else if (result.meanError <= 25.0) {
+    } else if (rel <= 0.12) {
       return 55.0; // Average
-    } else if (result.meanError <= 30.0) {
+    } else if (rel <= 0.18) {
       return 40.0; // Needs attention
     } else {
       return 25.0; // Poor
@@ -332,6 +334,15 @@ class TestProvider extends ChangeNotifier {
     buffer.writeln('Mean,${result.metrics.mean.toStringAsFixed(4)},px');
     buffer.writeln(
         'Standard Deviation,${result.metrics.std.toStringAsFixed(4)},px');
+
+    // For spiral tests, append algorithm-specific summary metrics.
+    if (result.testType == TestType.spiral) {
+      // These are currently derived from the spiral analyzer and can be
+      // extended to include relative metrics if needed in the future.
+      buffer.writeln(
+          'Spiral_Mean_Error,${result.metrics.deviationFromBaseline.toStringAsFixed(4)},px');
+    }
+
     buffer.writeln('');
 
     // Baseline points section (for spiral tests)

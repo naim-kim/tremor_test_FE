@@ -12,6 +12,8 @@ class SpiralAnalysisResult {
   final double maxError;
   final String judgment;
   final double pairingSlope; // Estimated a_ref from pairing module
+  final double relativeMeanError; // Mean error normalized by spiral size
+  final double relativeTremorAmplitude; // Tremor amp normalized by spiral size
   final double dominantTremorFreq;
   final double avgSpeed;
   final double totalTime;
@@ -25,6 +27,8 @@ class SpiralAnalysisResult {
     required this.maxError,
     required this.judgment,
     required this.pairingSlope,
+    required this.relativeMeanError,
+    required this.relativeTremorAmplitude,
     required this.dominantTremorFreq,
     required this.avgSpeed,
     required this.totalTime,
@@ -50,6 +54,8 @@ class SpiralAnalyzer {
     this.normalMeanThreshold = 15.0,
     this.differenceThreshold = 5.0,
   });
+
+  static const double _virtualCanvasSize = 300.0;
 
   SpiralAnalysisResult analyze({
     required List<Offset> refPoints,
@@ -133,6 +139,23 @@ class SpiralAnalyzer {
     final List<Offset> idealPoints =
         List<Offset>.generate(xPair.length, (i) => Offset(xPair[i], yPair[i]));
 
+    // Use a typical spiral radius (max radius of ideal spiral) for
+    // device- and size-independent normalization of error metrics.
+    double typicalRadius = 0.0;
+    for (final p in idealPoints) {
+      final r = p.distance;
+      if (r > typicalRadius) {
+        typicalRadius = r;
+      }
+    }
+    if (typicalRadius == 0.0) {
+      typicalRadius = 1.0; // Avoid division by zero; keeps relative metrics finite.
+    }
+
+    final double relativeMeanError = meanError / typicalRadius;
+    final double relativeTremorAmplitude =
+        (tremorRes['tremor_amp'] as double) / typicalRadius;
+
     final String judgment = _getJudgment(meanError);
 
     return SpiralAnalysisResult(
@@ -140,6 +163,8 @@ class SpiralAnalyzer {
       maxError: maxError,
       judgment: judgment,
       pairingSlope: pairingRes['a_ref'] as double,
+      relativeMeanError: relativeMeanError,
+      relativeTremorAmplitude: relativeTremorAmplitude,
       dominantTremorFreq: tremorRes['peak_freq'] as double,
       avgSpeed: speedRes['avg_speed'] as double,
       totalTime: speedRes['total_time'] as double,
@@ -159,11 +184,17 @@ class SpiralAnalyzer {
     for (int i = 0; i < drawingPoints.length; i++) {
       final ref = resampledRef[i];
       final user = drawingPoints[i];
+
+      // Use normalized coordinates (0-1) mapped to a fixed virtual canvas.
+      // This makes results device- and resolution-independent.
+      final double userVirtualX = user.normalizedX * _virtualCanvasSize;
+      final double userVirtualY = user.normalizedY * _virtualCanvasSize;
+
       rawData.add([
         ref.dx,
         ref.dy,
-        user.x,
-        user.y,
+        userVirtualX,
+        userVirtualY,
         user.timestamp.toDouble(),
       ]);
     }
