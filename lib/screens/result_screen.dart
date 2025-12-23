@@ -285,6 +285,7 @@ class _SegmentedCircularScoreCard extends StatelessWidget {
       child: Column(
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // 왼쪽: 점수 정보
               Expanded(
@@ -341,23 +342,33 @@ class _SegmentedCircularScoreCard extends StatelessWidget {
                 ),
               ),
 
-              // 오른쪽: 세그먼트 원형 그래프
-              SizedBox(
-                width: 140,
-                height: 140,
-                child: CustomPaint(
-                  painter: _SegmentedCircularProgressPainter(
-                    segments: segmentScores,
-                    totalScore: result.overallScore,
+              const SizedBox(width: 20),
+
+              // 오른쪽: 원형 그래프와 범례를 세로로 배치
+              Column(
+                children: [
+                  // 세그먼트 원형 그래프
+                  SizedBox(
+                    width: 140,
+                    height: 140,
+                    child: CustomPaint(
+                      painter: _SegmentedCircularProgressPainter(
+                        segments: segmentScores,
+                        totalScore: result.overallScore,
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 16),
+
+                  // 범례
+                  SizedBox(
+                    width: 140,
+                    child: _ScoreLegend(segments: segmentScores),
+                  ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 20),
-
-          // 범례
-          _ScoreLegend(segments: segmentScores),
         ],
       ),
     );
@@ -385,23 +396,15 @@ class _ScoreLegend extends StatelessWidget {
   Widget build(BuildContext context) {
     final entries = segments.entries.toList();
 
-    return Wrap(
-      spacing: 10,
-      runSpacing: 8,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: List.generate(entries.length, (index) {
         final entry = entries[index];
         final percentage = (entry.value / 100 * 100).toStringAsFixed(0);
 
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: _getColorForIndex(index).withOpacity(0.15),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: _getColorForIndex(index).withOpacity(0.3),
-              width: 1,
-            ),
-          ),
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -418,7 +421,7 @@ class _ScoreLegend extends StatelessWidget {
                 '${entry.key} $percentage%',
                 style: TextStyle(
                   color: Colors.grey[800],
-                  fontSize: 13,
+                  fontSize: 12,
                   fontWeight: FontWeight.w600,
                   letterSpacing: -0.3,
                 ),
