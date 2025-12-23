@@ -102,13 +102,13 @@ class _SignupScreenState extends State<SignupScreen> {
         centerTitle: true,
       ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF667eea),
-              Color(0xFF764ba2),
+              const Color(0xFF667eea),
+              const Color(0xFF764ba2),
             ],
           ),
         ),
@@ -166,7 +166,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           // Email Field
                           _buildTextField(
                             controller: _emailController,
-                            hint: 'example@email.com',
+                            hint: '이메일을 입력해주세요',
                             icon: Icons.email_outlined,
                             keyboardType: TextInputType.emailAddress,
                             validator: (value) {
@@ -179,72 +179,9 @@ class _SignupScreenState extends State<SignupScreen> {
                               return null;
                             },
                           ),
-                          const SizedBox(height: 16),
-
-                          // Provider Dropdown
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: DropdownButtonFormField<String>(
-                              initialValue: _provider,
-                              decoration: InputDecoration(
-                                labelStyle: TextStyle(
-                                  color: Colors.grey.shade600,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                prefixIcon: const Icon(
-                                  Icons.login_rounded,
-                                  color: Color(0xFF667eea),
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide.none,
-                                ),
-                                filled: true,
-                                fillColor: Colors.white,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                  vertical: 18,
-                                ),
-                              ),
-                              dropdownColor: Colors.white,
-                              icon: Icon(
-                                Icons.keyboard_arrow_down_rounded,
-                                color: Colors.grey.shade600,
-                              ),
-                              items: const [
-                                DropdownMenuItem(
-                                  value: 'kakao',
-                                  child: Text('카카오'),
-                                ),
-                                DropdownMenuItem(
-                                  value: 'google',
-                                  child: Text('구글'),
-                                ),
-                                DropdownMenuItem(
-                                  value: 'manual',
-                                  child: Text('직접 입력'),
-                                ),
-                              ],
-                              onChanged: (value) {
-                                if (value == null) return;
-                                setState(() {
-                                  _provider = value;
-                                });
-                              },
-                            ),
-                          ),
 
                           const Spacer(),
+                          const SizedBox(height: 40),
 
                           // Submit Button
                           Container(
@@ -275,19 +212,19 @@ class _SignupScreenState extends State<SignupScreen> {
                                 ),
                               ),
                               child: _isSubmitting
-                                  ? const SizedBox(
+                                  ? SizedBox(
                                       height: 24,
                                       width: 24,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2.5,
                                         valueColor:
                                             AlwaysStoppedAnimation<Color>(
-                                          Color(0xFF667eea),
+                                          const Color(0xFF667eea),
                                         ),
                                       ),
                                     )
                                   : const Text(
-                                      '회원가입',
+                                      '회원가입 및 계속하기',
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w600,
@@ -297,7 +234,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                     ),
                             ),
                           ),
-                          const Spacer(),
+                          const SizedBox(height: 20),
                         ],
                       ),
                     ),
@@ -318,55 +255,70 @@ class _SignupScreenState extends State<SignupScreen> {
     TextInputType? keyboardType,
     String? Function(String?)? validator,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: TextFormField(
-        controller: controller,
-        keyboardType: keyboardType,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-        ),
-        decoration: InputDecoration(
-          hintText: hint,
-          labelStyle: TextStyle(
-            color: Colors.grey.shade600,
-            fontWeight: FontWeight.w500,
-          ),
-          hintStyle: TextStyle(
-            color: Colors.grey.shade400,
-          ),
-          prefixIcon: Icon(
-            icon,
-            color: const Color(0xFF667eea),
-          ),
-          border: OutlineInputBorder(
+    return FormField<String>(
+      validator: (_) => validator?.call(controller.text),
+      builder: (FormFieldState<String> field) {
+        final hasError = field.hasError;
+
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
             borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide.none,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-          filled: true,
-          fillColor: Colors.white,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 18,
+          child: TextField(
+            controller: controller,
+            keyboardType: keyboardType,
+            onChanged: (value) {
+              field.didChange(value);
+            },
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: TextStyle(
+                color: hasError ? Colors.red.shade300 : Colors.grey.shade400,
+              ),
+              prefixIcon: Icon(
+                icon,
+                color: hasError ? Colors.red.shade300 : const Color(0xFF667eea),
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: hasError
+                    ? BorderSide(color: Colors.red.shade300, width: 2)
+                    : BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(
+                  color:
+                      hasError ? Colors.red.shade400 : const Color(0xFF667eea),
+                  width: 2,
+                ),
+              ),
+              filled: true,
+              fillColor: Colors.white,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 18,
+              ),
+            ),
           ),
-          errorStyle: TextStyle(
-            color: Colors.red.shade300,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        validator: validator,
-      ),
+        );
+      },
     );
   }
 }
