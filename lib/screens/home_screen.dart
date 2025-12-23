@@ -12,23 +12,31 @@ import 'all_results_screen.dart';
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
+  // Design Constants
+  static const _gradientColors = [Color(0xFF667eea), Color(0xFF764ba2)];
+  static const _primaryColor = Color(0xFF667eea);
+  static const _secondaryColor = Color(0xFF9B59B6);
+
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
     final testProvider = Provider.of<TestProvider>(context);
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        leading: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Image.asset(
-            'assets/images/logo.png',
-            errorBuilder: (_, __, ___) => const Icon(Icons.assessment),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: const Padding(
+          padding: EdgeInsets.all(12.0),
+          child: Icon(
+            Icons.assessment,
+            color: Colors.white,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.person_outline),
+            icon: const Icon(Icons.person_outline, color: Colors.white),
             onPressed: () {
               Navigator.push(
                 context,
@@ -38,103 +46,150 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Greeting
-              Text(
-                '${userProvider.userName}님, 안녕하세요!',
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              // Spiral Test Card
-              _TestCard(
-                title: '나선 그리기 검사',
-                description: '나선을 따라 그려주세요',
-                icon: Icons.refresh,
-                color: const Color(0xFF4A90E2),
-                lastResult: testProvider.getLatestResult(TestType.spiral),
-                onTestPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const SpiralTestScreen(),
-                    ),
-                  );
-                },
-                onResultPressed: (result) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ResultScreen(result: result),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 20),
-
-              // Pentagon Test Card
-              _TestCard(
-                title: '오각형 따라 그리기 검사',
-                description: '겹친 오각형을 보고 따라 그려주세요',
-                icon: Icons.pentagon_outlined,
-                color: const Color(0xFF9B59B6),
-                lastResult: testProvider.getLatestResult(TestType.pentagon),
-                onTestPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const PentagonTestScreen(),
-                    ),
-                  );
-                },
-                onResultPressed: (result) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ResultScreen(result: result),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 32),
-
-              // All results button
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const AllResultsScreen(),
-                      ),
-                    );
-                  },
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    side: BorderSide(color: Colors.grey.shade400),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: _gradientColors,
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(24.0, 0, 24.0, 24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Greeting
+                  Text(
+                    '${userProvider.userName}님,',
+                    style: const TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: -0.5,
                     ),
                   ),
-                  child: const Text(
-                    '모든 기록 보기',
+                  Text(
+                    '안녕하세요!',
                     style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.white.withOpacity(0.9),
                     ),
                   ),
-                ),
+                  const SizedBox(height: 25),
+
+                  // Spiral Test Card
+                  _TestCard(
+                    title: '나선 그리기 검사',
+                    description: '나선을 따라 그려주세요',
+                    icon: Icons.refresh,
+                    color: _primaryColor,
+                    lastResult: testProvider.getLatestResult(TestType.spiral),
+                    onTestPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const SpiralTestScreen(),
+                        ),
+                      );
+                    },
+                    onResultPressed: (result) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ResultScreen(result: result),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Pentagon Test Card
+                  _TestCard(
+                    title: '오각형 그리기 검사',
+                    description: '참고 그림을 보고 따라 그려주세요',
+                    icon: Icons.pentagon_outlined,
+                    color: _secondaryColor,
+                    lastResult: testProvider.getLatestResult(TestType.pentagon),
+                    onTestPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const PentagonTestScreen(),
+                        ),
+                      );
+                    },
+                    onResultPressed: (result) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ResultScreen(result: result),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 25),
+
+                  // All results button
+                  SizedBox(
+                    width: double.infinity,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.15),
+                            blurRadius: 15,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const AllResultsScreen(),
+                              ),
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(16),
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 16),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.history_rounded,
+                                  color: _primaryColor,
+                                  size: 24,
+                                ),
+                                SizedBox(width: 8),
+                                Text(
+                                  '모든 기록 보기',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: _primaryColor,
+                                    letterSpacing: -0.3,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -166,29 +221,41 @@ class _TestCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    gradient: LinearGradient(
+                      colors: [
+                        color,
+                        color.withOpacity(0.7),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: color.withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  child: Icon(icon, color: color, size: 28),
+                  child: Icon(icon, color: Colors.white, size: 28),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -200,6 +267,7 @@ class _TestCard extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
+                          letterSpacing: -0.3,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -223,6 +291,7 @@ class _TestCard extends StatelessWidget {
             else
               _LastResultWidget(
                 result: lastResult!,
+                color: color,
                 onTestPressed: onTestPressed,
                 onResultPressed: () => onResultPressed(lastResult!),
               ),
@@ -241,35 +310,53 @@ class _NoResultWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
+        gradient: LinearGradient(
+          colors: [
+            Colors.grey[50]!,
+            Colors.grey[100]!,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         children: [
+          Icon(
+            Icons.analytics_outlined,
+            size: 40,
+            color: Colors.grey[400],
+          ),
+          const SizedBox(height: 12),
           Text(
             '최근 기록이 없어요',
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
               onPressed: onPressed,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF4A90E2),
+                backgroundColor: const Color(0xFF667eea),
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                elevation: 0,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text('테스트하러 가기'),
+              child: const Text(
+                '테스트하러 가기',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.3,
+                ),
+              ),
             ),
           ),
         ],
@@ -280,11 +367,13 @@ class _NoResultWidget extends StatelessWidget {
 
 class _LastResultWidget extends StatelessWidget {
   final TestResult result;
+  final Color color;
   final VoidCallback onTestPressed;
   final VoidCallback onResultPressed;
 
   const _LastResultWidget({
     required this.result,
+    required this.color,
     required this.onTestPressed,
     required this.onResultPressed,
   });
@@ -292,77 +381,126 @@ class _LastResultWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            color.withOpacity(0.1),
+            color.withOpacity(0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: color.withOpacity(0.2),
+          width: 1.5,
+        ),
       ),
       child: Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    '최근 검사 결과',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey,
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '최근 검사 결과',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    result.resultCategory,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                    const SizedBox(height: 6),
+                    Text(
+                      result.resultCategory,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -0.3,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-              Text(
-                '${result.overallScore.toStringAsFixed(0)}점',
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF4A90E2),
+              const SizedBox(width: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [color, color.withOpacity(0.8)],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: color.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  '${result.overallScore.toStringAsFixed(0)}점',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
                 child: OutlinedButton(
                   onPressed: onResultPressed,
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xFF4A90E2)),
-                    foregroundColor: const Color(0xFF4A90E2),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    side: BorderSide(color: color, width: 1.5),
+                    foregroundColor: color,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text('결과 보기'),
+                  child: const Text(
+                    '결과 보기',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               Expanded(
                 child: ElevatedButton(
                   onPressed: onTestPressed,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4A90E2),
+                    backgroundColor: color,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text('다시 검사'),
+                  child: const Text(
+                    '다시 검사',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
                 ),
               ),
             ],
