@@ -11,97 +11,201 @@ class ResultScreen extends StatelessWidget {
 
   const ResultScreen({super.key, required this.result});
 
+  // Design Constants
+  static const _gradientColors = [Color(0xFF667eea), Color(0xFF764ba2)];
+  static const _primaryColor = Color(0xFF667eea);
+
   @override
   Widget build(BuildContext context) {
     final userName = result.userId;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('검사 결과'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text(
+          '검사 결과',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            letterSpacing: -0.5,
+          ),
+        ),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                DateFormat('yyyy년 MM월 dd일 HH:mm').format(result.timestamp),
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Overall Score with Segmented Circular Progress
-              _SegmentedCircularScoreCard(result: result),
-              const SizedBox(height: 24),
-
-              // Result Category with Straight Line Chart and Comments
-              _ResultCategoryCard(result: result, userName: userName),
-              const SizedBox(height: 24),
-
-              const Text(
-                '그림 비교',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 12),
-              DrawingComparison(result: result),
-              const SizedBox(height: 24),
-
-              const Text(
-                '세부항목 수치 계산',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 12),
-              MetricsCard(metrics: result.metrics),
-              const SizedBox(height: 32),
-
-              Row(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: _gradientColors,
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('공유 기능 준비 중입니다')),
-                        );
-                      },
-                      icon: const Icon(Icons.share),
-                      label: const Text('결과 공유'),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        side: const BorderSide(color: Color(0xFF4A90E2)),
-                        foregroundColor: const Color(0xFF4A90E2),
-                      ),
+                  const SizedBox(height: 8),
+                  Text(
+                    DateFormat('yyyy년 MM월 dd일 HH:mm').format(result.timestamp),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white.withOpacity(0.8),
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.of(context)
-                            .popUntil((route) => route.isFirst);
-                      },
-                      icon: const Icon(Icons.home),
-                      label: const Text('홈으로'),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        backgroundColor: const Color(0xFF4A90E2),
-                        foregroundColor: Colors.white,
-                      ),
+                  const SizedBox(height: 24),
+
+                  // Overall Score with Segmented Circular Progress
+                  _SegmentedCircularScoreCard(result: result),
+                  const SizedBox(height: 20),
+
+                  // Result Category with Straight Line Chart and Comments
+                  _ResultCategoryCard(result: result, userName: userName),
+                  const SizedBox(height: 20),
+
+                  const Text(
+                    '그림 비교',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: -0.5,
                     ),
                   ),
+                  const SizedBox(height: 12),
+                  DrawingComparison(result: result),
+                  const SizedBox(height: 20),
+
+                  const Text(
+                    '세부항목 수치 계산',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  MetricsCard(metrics: result.metrics),
+                  const SizedBox(height: 32),
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.15),
+                                blurRadius: 15,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: const Text('공유 기능 준비 중입니다'),
+                                    backgroundColor: Colors.black87,
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                );
+                              },
+                              borderRadius: BorderRadius.circular(16),
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.share_rounded,
+                                        color: _primaryColor, size: 20),
+                                    const SizedBox(width: 8),
+                                    const Text(
+                                      '결과 공유',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: _primaryColor,
+                                        letterSpacing: -0.3,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.white,
+                                Colors.white.withOpacity(0.95)
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 15,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.of(context)
+                                  .popUntil((route) => route.isFirst);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              shadowColor: Colors.transparent,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            icon: Icon(Icons.home_rounded,
+                                color: _primaryColor, size: 20),
+                            label: const Text(
+                              '홈으로',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: _primaryColor,
+                                letterSpacing: -0.3,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
                 ],
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -168,19 +272,12 @@ class _SegmentedCircularScoreCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            const Color(0xFF4A90E2),
-            const Color(0xFF357ABD),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF4A90E2).withOpacity(0.3),
-            blurRadius: 15,
+            color: Colors.black.withOpacity(0.15),
+            blurRadius: 20,
             offset: const Offset(0, 8),
           ),
         ],
@@ -194,30 +291,41 @@ class _SegmentedCircularScoreCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       '종합 점수',
                       style: TextStyle(
                         fontSize: 16,
-                        color: Colors.white70,
-                        fontWeight: FontWeight.w500,
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.3,
                       ),
                     ),
                     const SizedBox(height: 12),
                     Text(
                       '${result.overallScore.toStringAsFixed(0)}점',
                       style: const TextStyle(
-                        fontSize: 42,
+                        fontSize: 48,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: Color(0xFF667eea),
+                        letterSpacing: -1,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 12),
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                        ),
                         borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF667eea).withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
                       child: Text(
                         result.resultCategory,
@@ -225,6 +333,7 @@ class _SegmentedCircularScoreCard extends StatelessWidget {
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
+                          letterSpacing: -0.3,
                         ),
                       ),
                     ),
@@ -277,17 +386,21 @@ class _ScoreLegend extends StatelessWidget {
     final entries = segments.entries.toList();
 
     return Wrap(
-      spacing: 12,
+      spacing: 10,
       runSpacing: 8,
       children: List.generate(entries.length, (index) {
         final entry = entries[index];
         final percentage = (entry.value / 100 * 100).toStringAsFixed(0);
 
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
+            color: _getColorForIndex(index).withOpacity(0.15),
             borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: _getColorForIndex(index).withOpacity(0.3),
+              width: 1,
+            ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -300,13 +413,14 @@ class _ScoreLegend extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 8),
               Text(
                 '${entry.key} $percentage%',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
+                style: TextStyle(
+                  color: Colors.grey[800],
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.3,
                 ),
               ),
             ],
@@ -345,7 +459,7 @@ class _SegmentedCircularProgressPainter extends CustomPainter {
 
     // 배경 원
     final bgPaint = Paint()
-      ..color = Colors.white.withOpacity(0.2)
+      ..color = Colors.grey.shade200
       ..style = PaintingStyle.stroke
       ..strokeWidth = 20
       ..strokeCap = StrokeCap.butt;
@@ -386,17 +500,17 @@ class _SegmentedCircularProgressPainter extends CustomPainter {
           TextSpan(
             text: percentage,
             style: const TextStyle(
-              color: Colors.white,
-              fontSize: 28,
+              color: Color(0xFF667eea),
+              fontSize: 32,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const TextSpan(
+          TextSpan(
             text: '점',
             style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.normal,
+              color: Colors.grey[600],
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -467,17 +581,17 @@ class _ResultCategoryCard extends StatelessWidget {
   IconData _getCategoryIcon(String category) {
     switch (category) {
       case '매우 좋음':
-        return Icons.sentiment_very_satisfied;
+        return Icons.sentiment_very_satisfied_rounded;
       case '좋음':
-        return Icons.sentiment_satisfied;
+        return Icons.sentiment_satisfied_rounded;
       case '보통':
-        return Icons.sentiment_neutral;
+        return Icons.sentiment_neutral_rounded;
       case '주의 필요':
-        return Icons.sentiment_dissatisfied;
+        return Icons.sentiment_dissatisfied_rounded;
       case '병원 방문 권장':
-        return Icons.local_hospital;
+        return Icons.local_hospital_rounded;
       default:
-        return Icons.help_outline;
+        return Icons.help_outline_rounded;
     }
   }
 
@@ -486,11 +600,17 @@ class _ResultCategoryCard extends StatelessWidget {
     final categoryColor = _getCategoryColor(result.resultCategory);
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey[200]!),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.15),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -498,35 +618,42 @@ class _ResultCategoryCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: categoryColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  color: categoryColor.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: categoryColor.withOpacity(0.3),
+                    width: 1.5,
+                  ),
                 ),
                 child: Icon(
                   _getCategoryIcon(result.resultCategory),
                   color: categoryColor,
-                  size: 28,
+                  size: 32,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       '검사 결과',
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey,
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
+                    const SizedBox(height: 4),
                     Text(
                       result.resultCategory,
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 22,
                         fontWeight: FontWeight.bold,
                         color: categoryColor,
+                        letterSpacing: -0.5,
                       ),
                     ),
                   ],
@@ -534,15 +661,20 @@ class _ResultCategoryCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
 
           // 코멘트 박스
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              color: categoryColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              gradient: LinearGradient(
+                colors: [
+                  categoryColor.withOpacity(0.1),
+                  categoryColor.withOpacity(0.05),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: categoryColor.withOpacity(0.3),
                 width: 1.5,
@@ -553,12 +685,13 @@ class _ResultCategoryCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 15,
                 color: Colors.grey[800],
-                height: 1.5,
+                height: 1.6,
                 fontWeight: FontWeight.w500,
+                letterSpacing: -0.3,
               ),
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
 
           // 직선 차트
           _StraightLineChart(score: result.overallScore),
@@ -578,15 +711,16 @@ class _StraightLineChart extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const Text(
+        Text(
           '점수 분포',
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: Colors.grey,
+            color: Colors.grey[700],
+            letterSpacing: -0.3,
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
         SizedBox(
           height: 60,
           child: CustomPaint(
@@ -594,7 +728,7 @@ class _StraightLineChart extends StatelessWidget {
             child: const SizedBox(width: double.infinity),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -646,22 +780,32 @@ class _ChartLabel extends StatelessWidget {
     return Column(
       children: [
         Container(
-          width: 10,
-          height: 10,
+          width: 12,
+          height: 12,
           decoration: BoxDecoration(
             color: isActive ? color : Colors.grey[300],
             shape: BoxShape.circle,
+            boxShadow: isActive
+                ? [
+                    BoxShadow(
+                      color: color.withOpacity(0.4),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 6),
         Text(
           text,
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 9,
-            color: isActive ? color : Colors.grey[400],
-            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-            height: 1.2,
+            fontSize: 10,
+            color: isActive ? color : Colors.grey[500],
+            fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+            height: 1.3,
+            letterSpacing: -0.2,
           ),
         ),
       ],
@@ -679,7 +823,7 @@ class _StraightLineChartPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 8
+      ..strokeWidth = 10
       ..strokeCap = StrokeCap.round;
 
     final sections = [
@@ -720,18 +864,18 @@ class _StraightLineChartPainter extends CustomPainter {
     // 외곽 원 (흰색)
     canvas.drawCircle(
       Offset(scoreX, y),
-      14,
+      16,
       Paint()
         ..color = Colors.white
         ..style = PaintingStyle.fill,
     );
 
-    // 내부 원 (파란색)
+    // 내부 원 (그라데이션)
     canvas.drawCircle(
       Offset(scoreX, y),
-      10,
+      12,
       Paint()
-        ..color = const Color(0xFF4A90E2)
+        ..color = const Color(0xFF667eea)
         ..style = PaintingStyle.fill,
     );
   }
