@@ -270,7 +270,7 @@ class _SegmentedCircularScoreCard extends StatelessWidget {
     final segmentScores = _calculateSegmentScores();
 
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -287,7 +287,6 @@ class _SegmentedCircularScoreCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 왼쪽: 점수 정보
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -302,72 +301,58 @@ class _SegmentedCircularScoreCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Text(
-                      '${result.overallScore.toStringAsFixed(0)}점',
-                      style: const TextStyle(
-                        fontSize: 48,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF667eea),
-                        letterSpacing: -1,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF667eea), Color(0xFF764ba2)],
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF667eea).withOpacity(0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
+                    Row(
+                      children: [
+                        // 세그먼트 원형 그래프
+                        SizedBox(
+                          width: 140,
+                          height: 140,
+                          child: CustomPaint(
+                            painter: _SegmentedCircularProgressPainter(
+                              segments: segmentScores,
+                              totalScore: result.overallScore,
+                            ),
                           ),
-                        ],
-                      ),
-                      child: Text(
-                        result.resultCategory,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                          letterSpacing: -0.3,
                         ),
-                      ),
+                        const Spacer(),
+
+                        // 범례
+                        SizedBox(
+                          child: _ScoreLegend(segments: segmentScores),
+                        ),
+                        const SizedBox(width: 20),
+                      ],
                     ),
                   ],
                 ),
               ),
-
-              const SizedBox(width: 20),
-
-              // 오른쪽: 원형 그래프와 범례를 세로로 배치
-              Column(
-                children: [
-                  // 세그먼트 원형 그래프
-                  SizedBox(
-                    width: 140,
-                    height: 140,
-                    child: CustomPaint(
-                      painter: _SegmentedCircularProgressPainter(
-                        segments: segmentScores,
-                        totalScore: result.overallScore,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // 범례
-                  SizedBox(
-                    width: 140,
-                    child: _ScoreLegend(segments: segmentScores),
-                  ),
-                ],
-              ),
             ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+              ),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF667eea).withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Text(
+              result.resultCategory,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+                letterSpacing: -0.3,
+              ),
+            ),
           ),
         ],
       ),
