@@ -11,6 +11,7 @@ import '../models/test_result.dart';
 import '../utils/fft_analyzer.dart';
 import '../utils/spiral_generator.dart';
 import '../utils/spiral_analyzer.dart';
+import '../services/api_client.dart';
 
 class TestProvider extends ChangeNotifier {
   final Box<TestResult> _resultsBox = Hive.box<TestResult>('test_results');
@@ -218,22 +219,67 @@ class TestProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> saveResult(TestResult result) async {
+  Future<void> saveResult(
+    TestResult result, {
+    int? backendUserId,
+    ApiClient? apiClient,
+    double? pixelsPerMm,
+    List<int>? imageBytes,
+  }) async {
     await _resultsBox.put(result.id, result);
 
-    // Automatically save CSV file
-    try {
-      await _saveResultToCSV(result);
-    } catch (e) {
-      // Silently fail CSV export - don't block result saving
-      debugPrint('Failed to save CSV: $e');
+    // Try syncing to backend (CSV will be written on the server side).
+    if (backendUserId != null && apiClient != null) {
+      try {
+        await _syncResultToBackend(
+          result,
+          backendUserId,
+          apiClient,
+          pixelsPerMm: pixelsPerMm,
+          imageBytes: imageBytes,
+        );
+      } catch (e) {
+        debugPrint('Failed to sync result to backend: $e');
+      }
     }
 
     notifyListeners();
   }
 
+  Future<void> _syncResultToBackend(
+    TestResult result,
+    int backendUserId,
+    ApiClient apiClient, {
+    double? pixelsPerMm,
+    List<int>? imageBytes,
+  }) async {
+    final metrics = result.metrics;
+    final testTypeStr =
+        result.testType == TestType.spiral ? 'spiral' : 'pentagon';
+    final csvContent = _generateCSVContent(result, pixelsPerMm: pixelsPerMm);
+
+    await apiClient.saveTestCsv(
+      userId: backendUserId,
+      testType: testTypeStr,
+      overallScore: result.overallScore,
+      resultCategory: result.resultCategory,
+      frequency: metrics.frequency,
+      amplitude: metrics.amplitude,
+      deviationFromBaseline: metrics.deviationFromBaseline,
+      testDuration: metrics.testDuration,
+      averageSpeed: metrics.averageSpeed,
+      mean: metrics.mean,
+      std: metrics.std,
+      performedAt: result.timestamp,
+      csvContent: csvContent,
+      imageBytes: imageBytes,
+    );
+  }
+
   /// Save test result to CSV file automatically
   Future<void> _saveResultToCSV(TestResult result) async {
+    // CSV export is now handled on the backend (Spring Boot).
+    // Keep Windows export for local debugging if desired.
     try {
       Directory testDataDir;
 
@@ -244,14 +290,15 @@ class TestProvider extends ChangeNotifier {
         // For now, skip file saving on web
         debugPrint('CSV saving skipped on web platform');
         return;
-      } else if (Platform.isWindows) {
-        // Use hardcoded path for Windows
+      } else if (!Platform.isWindows) {
+        // On mobile platforms, we now rely on backend CSV export.
+        debugPrint(
+            'Skipping local CSV save on mobile; backend handles export.');
+        return;
+      } else {
+        // Windows: still allow local CSV save for debugging if needed.
         const hardcodedPath = r'C:\Users\User\GitHub\BCI_Lab\tremor_test_data';
         testDataDir = Directory(hardcodedPath);
-      } else {
-        // For mobile platforms (Android/iOS), use application documents directory
-        final directory = await getApplicationDocumentsDirectory();
-        testDataDir = Directory(path.join(directory.path, 'tremor_test_data'));
       }
 
       // Create directory if it doesn't exist
@@ -268,7 +315,7 @@ class TestProvider extends ChangeNotifier {
       final filePath = path.join(testDataDir.path, filename);
       final file = File(filePath);
 
-      // Generate CSV content
+      // Generate CSV content (no calibration applied for local debug)
       final csvContent = _generateCSVContent(result);
 
       // Write to file
@@ -303,7 +350,10 @@ class TestProvider extends ChangeNotifier {
   }
 
   /// Generate comprehensive CSV content with both drawing points and metrics
-  String _generateCSVContent(TestResult result) {
+  String _generateCSVContent(
+    TestResult result, {
+    double? pixelsPerMm,
+  }) {
     final buffer = StringBuffer();
     final dateFormat = DateFormat('yyyy-MM-dd HH:mm:ss');
 
@@ -370,17 +420,61 @@ class TestProvider extends ChangeNotifier {
 
     // User drawing points section
     buffer.writeln('# User Drawing Points');
-    buffer.writeln('x,y,normalizedX,normalizedY,timestamp_ms');
+
+    // For spiral tests, include centered coordinates; for pentagon, exclude them
+    final bool includeCentered = result.testType == TestType.spiral;
+
+    if (includeCentered) {
+      if (pixelsPerMm != null) {
+        buffer.writeln(
+            'x,y,normalizedX,normalizedY,timestamp_ms,centered_x_px,centered_y_px,centered_x_mm,centered_y_mm');
+      } else {
+        buffer.writeln(
+            'x,y,normalizedX,normalizedY,timestamp_ms,centered_x_px,centered_y_px');
+      }
+    } else {
+      // Pentagon: no centered coordinates
+      buffer.writeln('x,y,normalizedX,normalizedY,timestamp_ms');
+    }
 
     // Data points
     for (final point in result.drawingPoints) {
-      buffer.writeln(
-        '${point.x.toStringAsFixed(4)},'
-        '${point.y.toStringAsFixed(4)},'
-        '${point.normalizedX.toStringAsFixed(6)},'
-        '${point.normalizedY.toStringAsFixed(6)},'
-        '${point.timestamp}',
-      );
+      if (includeCentered) {
+        // center-based coordinates in pixels (canvas center as origin) - only for spiral
+        const canvasSize = 300.0;
+        final cx = canvasSize / 2;
+        final cy = canvasSize / 2;
+        final centeredXPx = point.x - cx;
+        final centeredYPx = point.y - cy;
+
+        String mmPart = '';
+        if (pixelsPerMm != null) {
+          final centeredXMm = centeredXPx / pixelsPerMm;
+          final centeredYMm = centeredYPx / pixelsPerMm;
+          mmPart =
+              ',${centeredXMm.toStringAsFixed(4)},${centeredYMm.toStringAsFixed(4)}';
+        }
+
+        buffer.writeln(
+          '${point.x.toStringAsFixed(4)},'
+          '${point.y.toStringAsFixed(4)},'
+          '${point.normalizedX.toStringAsFixed(6)},'
+          '${point.normalizedY.toStringAsFixed(6)},'
+          '${point.timestamp},'
+          '${centeredXPx.toStringAsFixed(4)},'
+          '${centeredYPx.toStringAsFixed(4)}'
+          '$mmPart',
+        );
+      } else {
+        // Pentagon: just basic coordinates
+        buffer.writeln(
+          '${point.x.toStringAsFixed(4)},'
+          '${point.y.toStringAsFixed(4)},'
+          '${point.normalizedX.toStringAsFixed(6)},'
+          '${point.normalizedY.toStringAsFixed(6)},'
+          '${point.timestamp}',
+        );
+      }
     }
 
     return buffer.toString();

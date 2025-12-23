@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/test_provider.dart';
+import '../providers/user_provider.dart';
+import '../services/api_client.dart';
 import '../models/test_result.dart';
-import '../widgets/drawing_canvas.dart';
 import 'result_screen.dart';
 
 class PentagonTestScreen extends StatefulWidget {
@@ -132,12 +135,50 @@ class _PentagonTestScreenState extends State<PentagonTestScreen> {
     );
 
     final testProvider = Provider.of<TestProvider>(context, listen: false);
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final apiClient = Provider.of<ApiClient>(context, listen: false);
+
+    final backendUserId = userProvider.userId;
+    if (backendUserId == null) {
+      if (!mounted) return;
+      Navigator.of(context).pop(); // close loading
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('먼저 회원가입/로그인을 해주세요.')),
+      );
+      return;
+    }
+
     final result = await testProvider.analyzeTest(
       testType: TestType.pentagon,
       points: validPoints,
     );
 
-    await testProvider.saveResult(result);
+    // Capture the drawing as PNG image
+    List<int>? imageBytes;
+    try {
+      final RenderRepaintBoundary? boundary = _canvasKey.currentContext
+          ?.findRenderObject() as RenderRepaintBoundary?;
+      if (boundary != null) {
+        final ui.Image image = await boundary.toImage(pixelRatio: 2.0);
+        final ByteData? byteData =
+            await image.toByteData(format: ui.ImageByteFormat.png);
+        if (byteData != null) {
+          imageBytes = byteData.buffer.asUint8List();
+          debugPrint('Captured PNG image: ${imageBytes.length} bytes');
+        }
+      }
+    } catch (e) {
+      debugPrint('Failed to capture image: $e');
+      // Continue without image - don't fail the save
+    }
+
+    await testProvider.saveResult(
+      result,
+      backendUserId: backendUserId,
+      apiClient: apiClient,
+      pixelsPerMm: userProvider.pixelsPerMm,
+      imageBytes: imageBytes,
+    );
 
     if (!mounted) return;
     Navigator.of(context).pop();
@@ -161,7 +202,7 @@ class _PentagonTestScreenState extends State<PentagonTestScreen> {
                 Container(
                   width: double.infinity,
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
                   color: Colors.white,
                   child: Row(
                     children: [
@@ -175,7 +216,7 @@ class _PentagonTestScreenState extends State<PentagonTestScreen> {
                       // 제목
                       const Expanded(
                         child: Text(
-                          '오각형 따라 그리기 검사',
+                          '오각형 그리기 검사',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -193,29 +234,22 @@ class _PentagonTestScreenState extends State<PentagonTestScreen> {
                       // 왼쪽: 참고 이미지
                       Container(
                         width: 200,
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(8),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF4A90E2).withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Text(
-                                '참고 이미지',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF4A90E2),
-                                ),
+                            const Text(
+                              '참고 이미지',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF4A90E2),
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 5),
                             Container(
                               width: 180,
-                              height: 180,
+                              //height: 180,
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(12),
@@ -261,13 +295,14 @@ class _PentagonTestScreenState extends State<PentagonTestScreen> {
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 12),
                             Text(
-                              '왼쪽 이미지를 보고\n오른쪽 캔버스에\n따라 그려주세요',
+                              '위 이미지를 보고\n따라 그려주세요',
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: 16,
                                 color: Colors.grey[600],
+                                fontWeight: FontWeight.w700,
                                 height: 1.5,
                               ),
                             ),
@@ -275,13 +310,7 @@ class _PentagonTestScreenState extends State<PentagonTestScreen> {
                         ),
                       ),
 
-                      // 구분선
-                      Container(
-                        width: 1,
-                        color: Colors.grey[300],
-                      ),
-
-                      // 중앙: 그리기 캔버스
+                      // 그리기 캔버스
                       Expanded(
                         child: Center(
                           child: RepaintBoundary(
@@ -300,28 +329,30 @@ class _PentagonTestScreenState extends State<PentagonTestScreen> {
 
                       // 오른쪽: 완료 버튼
                       Container(
-                        width: 100,
-                        padding: const EdgeInsets.all(16),
+                        width: 80,
+                        padding: const EdgeInsets.all(10),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             SizedBox(
                               width: double.infinity,
-                              height: 120,
+                              height: 50,
                               child: ElevatedButton(
                                 onPressed: _hasStarted ? _finishTest : null,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFF4A90E2),
                                   foregroundColor: Colors.white,
                                   disabledBackgroundColor: Colors.grey[300],
+                                  padding: EdgeInsets.zero,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
                                 child: const Text(
                                   '완료',
+                                  maxLines: 1,
                                   style: TextStyle(
-                                    fontSize: 18,
+                                    fontSize: 14,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),

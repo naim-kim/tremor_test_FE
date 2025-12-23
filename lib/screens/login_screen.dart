@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../providers/user_provider.dart';
-import 'home_screen.dart';
+import 'signup_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -79,16 +77,10 @@ class LoginScreen extends StatelessWidget {
   }
 
   void _handleLogin(BuildContext context, String provider) {
-    // Placeholder login - just set user data and navigate
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-    userProvider.setUser(
-      name: '테스트',
-      email: 'test@example.com',
-      loginProvider: provider,
-    );
-
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const HomeScreen()),
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => SignupScreen(initialProvider: provider),
+      ),
     );
   }
 }

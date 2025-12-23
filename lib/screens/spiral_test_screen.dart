@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/test_provider.dart';
+import '../providers/user_provider.dart';
+import '../services/api_client.dart';
 import '../models/test_result.dart';
 import '../widgets/drawing_canvas.dart';
 import '../utils/spiral_generator.dart';
@@ -104,13 +106,31 @@ class _SpiralTestScreenState extends State<SpiralTestScreen> {
 
     // Calculate results
     final testProvider = Provider.of<TestProvider>(context, listen: false);
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final apiClient = Provider.of<ApiClient>(context, listen: false);
+
+    final backendUserId = userProvider.userId;
+    if (backendUserId == null) {
+      if (!mounted) return;
+      Navigator.of(context).pop(); // close loading
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('먼저 회원가입/로그인을 해주세요.')),
+      );
+      return;
+    }
+
     final result = await testProvider.analyzeTest(
       testType: TestType.spiral,
       points: validPoints,
     );
 
-    // Save result
-    await testProvider.saveResult(result);
+    // Save result locally and sync to backend (CSV export happens on backend).
+    await testProvider.saveResult(
+      result,
+      backendUserId: backendUserId,
+      apiClient: apiClient,
+      pixelsPerMm: userProvider.pixelsPerMm,
+    );
 
     if (!mounted) return;
 
