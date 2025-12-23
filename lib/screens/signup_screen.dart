@@ -85,35 +85,22 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   Widget _buildForm() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(_horizontalPadding),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: IntrinsicHeight(
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(height: 20),
-                    _buildWelcomeText(),
-                    const SizedBox(height: 40),
-                    _buildNameField(),
-                    const SizedBox(height: 16),
-                    _buildEmailField(),
-                    const Spacer(),
-                    const SizedBox(height: 40),
-                    _buildSubmitButton(),
-                    const SizedBox(height: 20),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
+    return Padding(
+      padding: const EdgeInsets.all(_horizontalPadding),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Spacer(),
+          _buildWelcomeText(),
+          const SizedBox(height: 40),
+          _buildNameField(),
+          const SizedBox(height: 16),
+          _buildEmailField(),
+          const Spacer(flex: 2),
+          _buildSubmitButton(),
+          const SizedBox(height: 20),
+        ],
+      ),
     );
   }
 
