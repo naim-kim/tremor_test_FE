@@ -27,14 +27,11 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Image.asset(
-            'assets/images/logo.png',
-            errorBuilder: (_, __, ___) => const Icon(
-              Icons.assessment,
-              color: Colors.white,
-            ),
+        leading: const Padding(
+          padding: EdgeInsets.all(12.0),
+          child: Icon(
+            Icons.assessment,
+            color: Colors.white,
           ),
         ),
         actions: [
@@ -112,8 +109,8 @@ class HomeScreen extends StatelessWidget {
 
                   // Pentagon Test Card
                   _TestCard(
-                    title: '오각형 따라 그리기 검사',
-                    description: '겹친 오각형을 보고 따라 그려주세요',
+                    title: '오각형 그리기 검사',
+                    description: '참고 그림을 보고 따라 그려주세요',
                     icon: Icons.pentagon_outlined,
                     color: _secondaryColor,
                     lastResult: testProvider.getLatestResult(TestType.pentagon),
@@ -134,7 +131,7 @@ class HomeScreen extends StatelessWidget {
                       );
                     },
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 25),
 
                   // All results button
                   SizedBox(
@@ -163,8 +160,8 @@ class HomeScreen extends StatelessWidget {
                             );
                           },
                           borderRadius: BorderRadius.circular(16),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 16),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -173,8 +170,8 @@ class HomeScreen extends StatelessWidget {
                                   color: _primaryColor,
                                   size: 24,
                                 ),
-                                const SizedBox(width: 8),
-                                const Text(
+                                SizedBox(width: 8),
+                                Text(
                                   '모든 기록 보기',
                                   style: TextStyle(
                                     fontSize: 16,
@@ -190,7 +187,6 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
                 ],
               ),
             ),
