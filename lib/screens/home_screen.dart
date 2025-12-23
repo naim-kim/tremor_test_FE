@@ -7,6 +7,7 @@ import 'spiral_test_screen.dart';
 import 'pentagon_test_screen.dart';
 import 'my_page_screen.dart';
 import 'result_screen.dart';
+import 'all_results_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -102,6 +103,36 @@ class HomeScreen extends StatelessWidget {
                     ),
                   );
                 },
+              ),
+              const SizedBox(height: 32),
+
+              // All results button
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const AllResultsScreen(),
+                      ),
+                    );
+                  },
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    side: BorderSide(color: Colors.grey.shade400),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    '모든 기록 보기',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),

@@ -6,6 +6,7 @@ import '../providers/test_provider.dart';
 import '../models/test_result.dart';
 import 'result_screen.dart';
 import 'login_screen.dart';
+import 'calibration_screen.dart';
 
 class MyPageScreen extends StatelessWidget {
   const MyPageScreen({super.key});
@@ -124,6 +125,21 @@ class MyPageScreen extends StatelessWidget {
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 12),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const CalibrationScreen(),
+                          ),
+                        );
+                      },
+                      child: const Text('화면 보정'),
+                    ),
                   ),
                   const SizedBox(height: 32),
 
