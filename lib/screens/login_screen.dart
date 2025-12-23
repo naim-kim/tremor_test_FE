@@ -4,144 +4,36 @@ import 'signup_screen.dart';
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
+  // Design Constants
+  static const _gradientColors = [Color(0xFF667eea), Color(0xFF764ba2)];
+  static const _horizontalPadding = 32.0;
+  static const _borderRadius = 16.0;
+  static const _buttonHeight = 60.0;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              const Color(0xFF667eea),
-              const Color(0xFF764ba2),
-            ],
+            colors: _gradientColors,
           ),
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32.0),
+            padding: const EdgeInsets.symmetric(horizontal: _horizontalPadding),
             child: Column(
               children: [
                 const SizedBox(height: 60),
-
-                // Logo Section
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.assessment,
-                    size: 64,
-                    color: Colors.white,
-                  ),
-                ),
+                _buildLogo(),
                 const SizedBox(height: 32),
-
-                // Title
-                const Text(
-                  '떨림 검사',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  '간편하고 정확한 떨림 측정',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white70,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-
+                _buildTitle(),
                 const Spacer(),
-
-                // Login Buttons
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Kakao Login Button
-                    _LoginButton(
-                      onTap: () => _showComingSoon(context),
-                      backgroundColor: const Color(0xFFFEE500),
-                      textColor: Colors.black87,
-                      icon: Icons.chat_bubble_rounded,
-                      text: '카카오 로그인',
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Google Login Button
-                    _LoginButton(
-                      onTap: () => _showComingSoon(context),
-                      backgroundColor: Colors.white,
-                      textColor: Colors.black87,
-                      icon: Icons.g_mobiledata_rounded,
-                      text: 'Google 로그인',
-                      hasBorder: true,
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // In-app signup text link
-                    GestureDetector(
-                      onTap: () => _handleLogin(context, 'manual'),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              '이메일로 ',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.white.withOpacity(0.8),
-                              ),
-                            ),
-                            const Text(
-                              '회원가입',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                                decoration: TextDecoration.underline,
-                                decorationColor: Colors.white,
-                                decorationThickness: 1.5,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
+                _buildLoginButtons(context),
                 const SizedBox(height: 16),
-
-                // Terms Text
-                Text(
-                  '로그인하시면 서비스 이용약관 및\n개인정보 처리방침에 동의하게 됩니다.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.white.withOpacity(0.7),
-                    height: 1.5,
-                  ),
-                ),
+                _buildTermsText(),
                 const SizedBox(height: 40),
               ],
             ),
@@ -151,10 +43,129 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  void _handleLogin(BuildContext context, String provider) {
+  Widget _buildLogo() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.15),
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: const Icon(
+        Icons.assessment,
+        size: 64,
+        color: Colors.white,
+      ),
+    );
+  }
+
+  Widget _buildTitle() {
+    return const Column(
+      children: [
+        Text(
+          '떨림 검사',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 36,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            letterSpacing: -0.5,
+          ),
+        ),
+        SizedBox(height: 12),
+        Text(
+          '간편하고 정확한 떨림 측정',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.white70,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLoginButtons(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _LoginButton(
+          onTap: () => _showComingSoon(context),
+          backgroundColor: const Color(0xFFFEE500),
+          textColor: Colors.black87,
+          icon: Icons.chat_bubble_rounded,
+          text: '카카오 로그인',
+        ),
+        const SizedBox(height: 12),
+        _LoginButton(
+          onTap: () => _showComingSoon(context),
+          backgroundColor: Colors.white,
+          textColor: Colors.black87,
+          icon: Icons.g_mobiledata_rounded,
+          text: 'Google 로그인',
+          hasBorder: true,
+        ),
+        const SizedBox(height: 24),
+        _buildSignupLink(context),
+      ],
+    );
+  }
+
+  Widget _buildSignupLink(BuildContext context) {
+    return GestureDetector(
+      onTap: () => _navigateToSignup(context),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              '이메일로 ',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.white.withOpacity(0.8),
+              ),
+            ),
+            const Text(
+              '회원가입',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                decoration: TextDecoration.underline,
+                decorationColor: Colors.white,
+                decorationThickness: 1.5,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTermsText() {
+    return Text(
+      '로그인하시면 서비스 이용약관 및\n개인정보 처리방침에 동의하게 됩니다.',
+      textAlign: TextAlign.center,
+      style: TextStyle(
+        fontSize: 12,
+        color: Colors.white.withOpacity(0.7),
+        height: 1.5,
+      ),
+    );
+  }
+
+  void _navigateToSignup(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => SignupScreen(initialProvider: provider),
+        builder: (_) => const SignupScreen(initialProvider: 'manual'),
       ),
     );
   }
