@@ -23,7 +23,7 @@ class LoginScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 32.0),
             child: Column(
               children: [
-                const Spacer(),
+                const SizedBox(height: 60),
 
                 // Logo Section
                 Container(
@@ -77,7 +77,7 @@ class LoginScreen extends StatelessWidget {
                   children: [
                     // Kakao Login Button
                     _LoginButton(
-                      onTap: () => _handleLogin(context, 'kakao'),
+                      onTap: () => _showComingSoon(context),
                       backgroundColor: const Color(0xFFFEE500),
                       textColor: Colors.black87,
                       icon: Icons.chat_bubble_rounded,
@@ -87,17 +87,50 @@ class LoginScreen extends StatelessWidget {
 
                     // Google Login Button
                     _LoginButton(
-                      onTap: () => _handleLogin(context, 'google'),
+                      onTap: () => _showComingSoon(context),
                       backgroundColor: Colors.white,
                       textColor: Colors.black87,
                       icon: Icons.g_mobiledata_rounded,
                       text: 'Google 로그인',
                       hasBorder: true,
                     ),
+
+                    const SizedBox(height: 24),
+
+                    // In-app signup text link
+                    GestureDetector(
+                      onTap: () => _handleLogin(context, 'manual'),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              '이메일로 ',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.white.withOpacity(0.8),
+                              ),
+                            ),
+                            const Text(
+                              '회원가입',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                decoration: TextDecoration.underline,
+                                decorationColor: Colors.white,
+                                decorationThickness: 1.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ],
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
 
                 // Terms Text
                 Text(
@@ -122,6 +155,21 @@ class LoginScreen extends StatelessWidget {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => SignupScreen(initialProvider: provider),
+      ),
+    );
+  }
+
+  void _showComingSoon(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('곧 출시됩니다'),
+        backgroundColor: Colors.black87,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        margin: const EdgeInsets.all(16),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
