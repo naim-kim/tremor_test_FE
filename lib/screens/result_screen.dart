@@ -49,7 +49,7 @@ class ResultScreen extends StatelessWidget {
         child: SafeArea(
           child: SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -62,13 +62,31 @@ class ResultScreen extends StatelessWidget {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(height: 24),
-
+                  const SizedBox(height: 16),
+                  const Text(
+                    '종합 점수',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                   // Overall Score with Segmented Circular Progress
                   _SegmentedCircularScoreCard(result: result),
                   const SizedBox(height: 20),
 
-                  // Result Category with Straight Line Chart and Comments
+                  const Text(
+                    '점수 분포',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                   _ResultCategoryCard(result: result, userName: userName),
                   const SizedBox(height: 20),
 
@@ -291,16 +309,6 @@ class _SegmentedCircularScoreCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '종합 점수',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey[600],
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: -0.3,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
                     Row(
                       children: [
                         // 세그먼트 원형 그래프
@@ -549,40 +557,6 @@ class _ResultCategoryCard extends StatelessWidget {
     }
   }
 
-  String _getCategoryComment(String category, String userName) {
-    switch (category) {
-      case '매우 좋음':
-        return '$userName님, 정상입니다! 떨림이 거의 없어요. 👍';
-      case '좋음':
-        return '$userName님, 양호한 상태입니다! 건강을 잘 유지하고 계시네요. 😊';
-      case '보통':
-        return '$userName님, 일반적인 수준입니다. 정기적인 검사를 권장드려요.';
-      case '주의 필요':
-        return '$userName님, 떨림이 다소 있습니다. 지속적인 관찰이 필요해요. ⚠️';
-      case '병원 방문 권장':
-        return '$userName님, 결과가 좋지 않게 나왔습니다. 병원 방문을 권장드립니다. 🏥';
-      default:
-        return '';
-    }
-  }
-
-  IconData _getCategoryIcon(String category) {
-    switch (category) {
-      case '매우 좋음':
-        return Icons.sentiment_very_satisfied_rounded;
-      case '좋음':
-        return Icons.sentiment_satisfied_rounded;
-      case '보통':
-        return Icons.sentiment_neutral_rounded;
-      case '주의 필요':
-        return Icons.sentiment_dissatisfied_rounded;
-      case '병원 방문 권장':
-        return Icons.local_hospital_rounded;
-      default:
-        return Icons.help_outline_rounded;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final categoryColor = _getCategoryColor(result.resultCategory);
@@ -603,85 +577,6 @@ class _ResultCategoryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: categoryColor.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: categoryColor.withOpacity(0.3),
-                    width: 1.5,
-                  ),
-                ),
-                child: Icon(
-                  _getCategoryIcon(result.resultCategory),
-                  color: categoryColor,
-                  size: 32,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '검사 결과',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      result.resultCategory,
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: categoryColor,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-
-          // 코멘트 박스
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  categoryColor.withOpacity(0.1),
-                  categoryColor.withOpacity(0.05),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: categoryColor.withOpacity(0.3),
-                width: 1.5,
-              ),
-            ),
-            child: Text(
-              _getCategoryComment(result.resultCategory, userName),
-              style: TextStyle(
-                fontSize: 15,
-                color: Colors.grey[800],
-                height: 1.6,
-                fontWeight: FontWeight.w500,
-                letterSpacing: -0.3,
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // 직선 차트
           _StraightLineChart(score: result.overallScore),
         ],
       ),
@@ -699,16 +594,6 @@ class _StraightLineChart extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(
-          '점수 분포',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Colors.grey[700],
-            letterSpacing: -0.3,
-          ),
-        ),
-        const SizedBox(height: 20),
         SizedBox(
           height: 60,
           child: CustomPaint(
@@ -716,17 +601,16 @@ class _StraightLineChart extends StatelessWidget {
             child: const SizedBox(width: double.infinity),
           ),
         ),
-        const SizedBox(height: 16),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             _ChartLabel(
-              text: '병원\n방문\n권장',
+              text: '병원 방문 권장',
               color: Colors.red,
               isActive: score < 40,
             ),
             _ChartLabel(
-              text: '주의\n필요',
+              text: '주의 필요',
               color: Colors.deepOrange,
               isActive: score >= 40 && score < 55,
             ),
@@ -741,7 +625,7 @@ class _StraightLineChart extends StatelessWidget {
               isActive: score >= 70 && score < 85,
             ),
             _ChartLabel(
-              text: '매우\n좋음',
+              text: '매우 좋음',
               color: Colors.green,
               isActive: score >= 85,
             ),

@@ -17,6 +17,10 @@ class SpiralTestScreen extends StatefulWidget {
 }
 
 class _SpiralTestScreenState extends State<SpiralTestScreen> {
+  // Design Constants
+  static const _gradientColors = [Color(0xFF667eea), Color(0xFF764ba2)];
+  static const _primaryColor = Color(0xFF667eea);
+
   final List<DrawingPoint?> _points = []; // null을 포함하도록 변경
   int? _startTime;
   Timer? _samplingTimer;
@@ -90,7 +94,14 @@ class _SpiralTestScreenState extends State<SpiralTestScreen> {
 
     if (validPoints.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('먼저 그림을 그려주세요')),
+        SnackBar(
+          content: const Text('먼저 그림을 그려주세요'),
+          backgroundColor: Colors.red.shade400,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
       );
       return;
     }
@@ -100,7 +111,9 @@ class _SpiralTestScreenState extends State<SpiralTestScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => const Center(
-        child: CircularProgressIndicator(),
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+        ),
       ),
     );
 
@@ -114,7 +127,14 @@ class _SpiralTestScreenState extends State<SpiralTestScreen> {
       if (!mounted) return;
       Navigator.of(context).pop(); // close loading
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('먼저 회원가입/로그인을 해주세요.')),
+        SnackBar(
+          content: const Text('먼저 회원가입/로그인을 해주세요.'),
+          backgroundColor: Colors.red.shade400,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
       );
       return;
     }
@@ -148,79 +168,147 @@ class _SpiralTestScreenState extends State<SpiralTestScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('나선 그리기 검사'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text(
+          '나선 그리기 검사',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            letterSpacing: -0.5,
+          ),
+        ),
         centerTitle: true,
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Instructions
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                children: [
-                  const Text(
-                    '나선을 따라 그려주세요',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: _gradientColors,
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              const SizedBox(height: 20),
+              // Instructions
+              Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  children: [
+                    const Text(
+                      '나선을 따라 그려주세요',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: -0.5,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '선을 최대한 정확하게 따라가세요',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
+                    const SizedBox(height: 8),
+                    Text(
+                      '선을 최대한 정확하게 따라가세요',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white.withOpacity(0.8),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Drawing Canvas
-            Expanded(
-              child: Center(
-                child: DrawingCanvas(
-                  size: canvasSize,
-                  baselinePath: SpiralGenerator.generateSpiralPath(canvasSize),
-                  userPoints: _points,
-                  onPanStart: _startDrawing,
-                  onPanUpdate: _updateDrawing,
-                  onPanEnd: _stopDrawing,
-                  showBaseline: true,
+                  ],
                 ),
               ),
-            ),
 
-            // Finish Button
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: _hasStarted ? _finishTest : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4A90E2),
-                    foregroundColor: Colors.white,
-                    disabledBackgroundColor: Colors.grey[300],
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+              // Drawing Canvas
+              Expanded(
+                child: Center(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
                     ),
-                  ),
-                  child: const Text(
-                    '완료',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: DrawingCanvas(
+                        size: canvasSize,
+                        baselinePath:
+                            SpiralGenerator.generateSpiralPath(canvasSize),
+                        userPoints: _points,
+                        onPanStart: _startDrawing,
+                        onPanUpdate: _updateDrawing,
+                        onPanEnd: _stopDrawing,
+                        showBaseline: true,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+
+              // Finish Button
+              Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Container(
+                  width: double.infinity,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    gradient: _hasStarted
+                        ? LinearGradient(
+                            colors: [
+                              Colors.white,
+                              Colors.white.withOpacity(0.95)
+                            ],
+                          )
+                        : null,
+                    color: _hasStarted ? null : Colors.white.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: _hasStarted
+                        ? [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 15,
+                              offset: const Offset(0, 8),
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: ElevatedButton(
+                    onPressed: _hasStarted ? _finishTest : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      disabledBackgroundColor: Colors.transparent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: Text(
+                      '완료',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: _hasStarted
+                            ? _primaryColor
+                            : Colors.white.withOpacity(0.5),
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
