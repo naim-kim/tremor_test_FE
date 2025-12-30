@@ -107,6 +107,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       const SizedBox(height: 16),
                       _buildEmailField(),
                       const Spacer(flex: 2),
+                      const SizedBox(height: 20),
                       _buildSubmitButton(),
                       const SizedBox(height: 20),
                     ],
