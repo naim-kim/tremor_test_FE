@@ -100,14 +100,13 @@ class _SignupScreenState extends State<SignupScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const Spacer(flex: 1),
+                      const Spacer(),
                       _buildWelcomeText(),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 40),
                       _buildNameField(),
                       const SizedBox(height: 16),
                       _buildEmailField(),
                       const Spacer(flex: 2),
-                      const SizedBox(height: 20),
                       _buildSubmitButton(),
                       const SizedBox(height: 20),
                     ],
@@ -250,7 +249,17 @@ class _SignupScreenState extends State<SignupScreen> {
     } catch (e) {
       if (!mounted) return;
 
-      _showErrorSnackBar('회원가입 실패: $e');
+      // Parse error message
+      String errorMessage = '회원가입 실패';
+      if (e.toString().contains('409') ||
+          e.toString().contains('already exists')) {
+        errorMessage = '이미 사용 중인 이메일입니다';
+      } else if (e.toString().contains('network') ||
+          e.toString().contains('connection')) {
+        errorMessage = '네트워크 연결을 확인해주세요';
+      }
+
+      _showErrorSnackBar(errorMessage);
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
@@ -259,16 +268,26 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red.shade400,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+    // Dismiss keyboard to make room for SnackBar
+    FocusScope.of(context).unfocus();
+
+    // Small delay to allow keyboard to dismiss
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red.shade400,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.only(bottom: 20, left: 16, right: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          duration: const Duration(seconds: 3),
         ),
-      ),
-    );
+      );
+    });
   }
 }
 
