@@ -100,8 +100,10 @@ class ResultScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  DrawingComparison(result: result),
-                  const SizedBox(height: 20),
+                  // Simple and clear
+                  Center(
+                    child: DrawingComparison(result: result),
+                  ),
 
                   const Text(
                     '세부항목 수치 계산',
