@@ -18,6 +18,10 @@ class PentagonTestScreen extends StatefulWidget {
 }
 
 class _PentagonTestScreenState extends State<PentagonTestScreen> {
+  // Design Constants
+  static const _gradientColors = [Color(0xFF667eea), Color(0xFF764ba2)];
+  static const _primaryColor = Color(0xFF667eea);
+
   final List<DrawingPoint?> _points = [];
   int? _startTime;
   Timer? _samplingTimer;
@@ -120,7 +124,14 @@ class _PentagonTestScreenState extends State<PentagonTestScreen> {
     if (validPoints.isEmpty) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('먼저 그림을 그려주세요')),
+        SnackBar(
+          content: const Text('먼저 그림을 그려주세요'),
+          backgroundColor: Colors.red.shade400,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
       );
       return;
     }
@@ -130,7 +141,9 @@ class _PentagonTestScreenState extends State<PentagonTestScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => const Center(
-        child: CircularProgressIndicator(),
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+        ),
       ),
     );
 
@@ -143,7 +156,14 @@ class _PentagonTestScreenState extends State<PentagonTestScreen> {
       if (!mounted) return;
       Navigator.of(context).pop(); // close loading
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('먼저 회원가입/로그인을 해주세요.')),
+        SnackBar(
+          content: const Text('먼저 회원가입/로그인을 해주세요.'),
+          backgroundColor: Colors.red.shade400,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
       );
       return;
     }
@@ -192,86 +212,94 @@ class _PentagonTestScreenState extends State<PentagonTestScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Column(
-              children: [
-                // 상단 헤더 (가로 모드용)
-                Container(
-                  width: double.infinity,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-                  color: Colors.white,
-                  child: Row(
-                    children: [
-                      // 뒤로가기 버튼
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back),
-                        onPressed: () => Navigator.of(context).pop(),
-                        padding: EdgeInsets.zero,
+      extendBodyBehindAppBar: true,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: _gradientColors,
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // 상단 헤더 (가로 모드용)
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Row(
+                  children: [
+                    // 뒤로가기 버튼
+                    IconButton(
+                      icon: const Icon(
+                        Icons.arrow_back_ios_rounded,
+                        color: Colors.white,
                       ),
-                      const SizedBox(width: 8),
-                      // 제목
-                      const Expanded(
-                        child: Text(
-                          '오각형 그리기 검사',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
+                      onPressed: () => Navigator.of(context).pop(),
+                      padding: EdgeInsets.zero,
+                    ),
+                    const SizedBox(width: 8),
+                    // 제목
+                    const Expanded(
+                      child: Text(
+                        '오각형 따라 그리기 검사',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                          letterSpacing: -0.5,
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
+              ),
 
-                // 메인 컨텐츠 영역
-                Expanded(
+              // 메인 컨텐츠 영역
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Row(
                     children: [
                       // 왼쪽: 참고 이미지
                       Container(
                         width: 200,
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(12),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             const Text(
                               '참고 이미지',
                               style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF4A90E2),
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                letterSpacing: -0.3,
                               ),
                             ),
-                            const SizedBox(height: 5),
+                            const SizedBox(height: 12),
                             Container(
                               width: 180,
-                              //height: 180,
                               decoration: BoxDecoration(
                                 color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: const Color(0xFF4A90E2),
-                                  width: 2,
-                                ),
+                                borderRadius: BorderRadius.circular(16),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
+                                    color: Colors.black.withOpacity(0.2),
+                                    blurRadius: 15,
+                                    offset: const Offset(0, 8),
                                   ),
                                 ],
                               ),
                               child: ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius: BorderRadius.circular(16),
                                 child: Image.asset(
                                   'assets/images/pentagon.png',
                                   fit: BoxFit.contain,
                                   errorBuilder: (_, __, ___) => Container(
                                     color: Colors.grey[200],
+                                    padding: const EdgeInsets.all(32),
                                     child: Column(
                                       mainAxisAlignment:
                                           MainAxisAlignment.center,
@@ -295,20 +323,22 @@ class _PentagonTestScreenState extends State<PentagonTestScreen> {
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 16),
                             Text(
                               '위 이미지를 보고\n따라 그려주세요',
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey[600],
-                                fontWeight: FontWeight.w700,
+                                fontSize: 14,
+                                color: Colors.white.withOpacity(0.9),
+                                fontWeight: FontWeight.w500,
                                 height: 1.5,
                               ),
                             ),
                           ],
                         ),
                       ),
+
+                      const SizedBox(width: 16),
 
                       // 그리기 캔버스
                       Expanded(
@@ -327,33 +357,62 @@ class _PentagonTestScreenState extends State<PentagonTestScreen> {
                         ),
                       ),
 
+                      const SizedBox(width: 16),
+
                       // 오른쪽: 완료 버튼
                       Container(
                         width: 80,
-                        padding: const EdgeInsets.all(10),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            SizedBox(
+                            Container(
                               width: double.infinity,
-                              height: 50,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                gradient: _hasStarted
+                                    ? LinearGradient(
+                                        colors: [
+                                          Colors.white,
+                                          Colors.white.withOpacity(0.95)
+                                        ],
+                                      )
+                                    : null,
+                                color: _hasStarted
+                                    ? null
+                                    : Colors.white.withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: _hasStarted
+                                    ? [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.2),
+                                          blurRadius: 15,
+                                          offset: const Offset(0, 8),
+                                        ),
+                                      ]
+                                    : null,
+                              ),
                               child: ElevatedButton(
                                 onPressed: _hasStarted ? _finishTest : null,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF4A90E2),
-                                  foregroundColor: Colors.white,
-                                  disabledBackgroundColor: Colors.grey[300],
+                                  backgroundColor: Colors.transparent,
+                                  shadowColor: Colors.transparent,
+                                  disabledBackgroundColor: Colors.transparent,
                                   padding: EdgeInsets.zero,
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(16),
                                   ),
                                 ),
-                                child: const Text(
+                                child: Text(
                                   '완료',
                                   maxLines: 1,
                                   style: TextStyle(
-                                    fontSize: 14,
+                                    fontSize: 16,
                                     fontWeight: FontWeight.w600,
+                                    color: _hasStarted
+                                        ? _primaryColor
+                                        : Colors.white.withOpacity(0.5),
+                                    letterSpacing: -0.3,
                                   ),
                                 ),
                               ),
@@ -364,9 +423,10 @@ class _PentagonTestScreenState extends State<PentagonTestScreen> {
                     ],
                   ),
                 ),
-              ],
-            ),
-          ],
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
         ),
       ),
     );
@@ -398,18 +458,17 @@ class _WideDrawingCanvas extends StatelessWidget {
       height: height,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF4A90E2), width: 3),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(20),
         child: GestureDetector(
           onPanStart: (details) {
             final RenderBox renderBox = context.findRenderObject() as RenderBox;
@@ -456,7 +515,7 @@ class _WideDrawingPainter extends CustomPainter {
     if (userPoints.isEmpty) return;
 
     final userPaint = Paint()
-      ..color = const Color(0xFF4A90E2)
+      ..color = const Color(0xFF667eea)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3.0
       ..strokeCap = StrokeCap.round
@@ -488,7 +547,7 @@ class _WideDrawingPainter extends CustomPainter {
 
     // 점 표시
     final pointPaint = Paint()
-      ..color = const Color(0xFF4A90E2).withOpacity(0.3)
+      ..color = const Color(0xFF667eea).withOpacity(0.3)
       ..style = PaintingStyle.fill;
 
     for (final point in userPoints) {
