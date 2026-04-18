@@ -8,14 +8,15 @@ import 'pentagon_test_screen.dart';
 import 'my_page_screen.dart';
 import 'result_screen.dart';
 import 'all_results_screen.dart';
+import '../theme/app_colors.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   // Design Constants
-  static const _gradientColors = [Color(0xFF667eea), Color(0xFF764ba2)];
-  static const _primaryColor = Color(0xFF667eea);
-  static const _secondaryColor = Color(0xFF9B59B6);
+  static const _gradientColors = [AppColors.teal800, AppColors.teal600];
+  static const _primaryColor = AppColors.teal800;
+  static const _secondaryColor = AppColors.teal600;
 
   @override
   Widget build(BuildContext context) {
@@ -35,14 +36,23 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.person_outline, color: Colors.white),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const MyPageScreen()),
-              );
-            },
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: TextButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const MyPageScreen()),
+                );
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                minimumSize: const Size(0, 52),
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+              ),
+              icon: const Icon(Icons.person_outline),
+              label: const Text('마이페이지'),
+            ),
           ),
         ],
       ),
@@ -174,7 +184,7 @@ class HomeScreen extends StatelessWidget {
                                 Text(
                                   '모든 기록 보기',
                                   style: TextStyle(
-                                    fontSize: 16,
+                                    fontSize: 18,
                                     fontWeight: FontWeight.w600,
                                     color: _primaryColor,
                                     letterSpacing: -0.3,

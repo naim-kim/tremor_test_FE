@@ -9,6 +9,7 @@ import '../providers/user_provider.dart';
 import '../services/api_client.dart';
 import '../models/test_result.dart';
 import 'result_screen.dart';
+import '../theme/app_colors.dart';
 
 class PentagonTestScreen extends StatefulWidget {
   const PentagonTestScreen({super.key});
@@ -19,8 +20,8 @@ class PentagonTestScreen extends StatefulWidget {
 
 class _PentagonTestScreenState extends State<PentagonTestScreen> {
   // Design Constants
-  static const _gradientColors = [Color(0xFF667eea), Color(0xFF764ba2)];
-  static const _primaryColor = Color(0xFF667eea);
+  static const _gradientColors = [AppColors.teal800, AppColors.teal600];
+  static const _primaryColor = AppColors.teal800;
 
   final List<DrawingPoint?> _points = [];
   int? _startTime;
@@ -231,13 +232,15 @@ class _PentagonTestScreenState extends State<PentagonTestScreen> {
                 child: Row(
                   children: [
                     // 뒤로가기 버튼
-                    IconButton(
-                      icon: const Icon(
-                        Icons.arrow_back_ios_rounded,
-                        color: Colors.white,
-                      ),
+                    TextButton.icon(
                       onPressed: () => Navigator.of(context).pop(),
-                      padding: EdgeInsets.zero,
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(0, 52),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                      ),
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                      label: const Text('뒤로'),
                     ),
                     const SizedBox(width: 8),
                     // 제목
@@ -245,7 +248,7 @@ class _PentagonTestScreenState extends State<PentagonTestScreen> {
                       child: Text(
                         '오각형 따라 그리기 검사',
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 20,
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
                           letterSpacing: -0.5,
@@ -272,7 +275,7 @@ class _PentagonTestScreenState extends State<PentagonTestScreen> {
                             const Text(
                               '참고 이미지',
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 18,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
                                 letterSpacing: -0.3,
@@ -328,7 +331,7 @@ class _PentagonTestScreenState extends State<PentagonTestScreen> {
                               '위 이미지를 보고\n따라 그려주세요',
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: 16,
                                 color: Colors.white.withOpacity(0.9),
                                 fontWeight: FontWeight.w500,
                                 height: 1.5,
@@ -407,7 +410,7 @@ class _PentagonTestScreenState extends State<PentagonTestScreen> {
                                   '완료',
                                   maxLines: 1,
                                   style: TextStyle(
-                                    fontSize: 16,
+                                    fontSize: 18,
                                     fontWeight: FontWeight.w600,
                                     color: _hasStarted
                                         ? _primaryColor
@@ -515,7 +518,7 @@ class _WideDrawingPainter extends CustomPainter {
     if (userPoints.isEmpty) return;
 
     final userPaint = Paint()
-      ..color = const Color(0xFF667eea)
+      ..color = AppColors.teal800
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3.0
       ..strokeCap = StrokeCap.round
@@ -547,7 +550,7 @@ class _WideDrawingPainter extends CustomPainter {
 
     // 점 표시
     final pointPaint = Paint()
-      ..color = const Color(0xFF667eea).withOpacity(0.3)
+      ..color = AppColors.teal800.withOpacity(0.3)
       ..style = PaintingStyle.fill;
 
     for (final point in userPoints) {

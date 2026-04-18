@@ -9,6 +9,7 @@ import 'providers/test_provider.dart';
 import 'models/test_result.dart';
 import 'config/api_config.dart';
 import 'services/api_client.dart';
+import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -52,32 +53,7 @@ class TremorDetectionApp extends StatelessWidget {
       child: MaterialApp(
         title: '떨림 검사',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          primaryColor: const Color(0xFF4A90E2),
-          scaffoldBackgroundColor: Colors.white,
-          fontFamily: 'NotoSansKR',
-          appBarTheme: const AppBarTheme(
-            backgroundColor: Colors.white,
-            elevation: 0,
-            iconTheme: IconThemeData(color: Colors.black87),
-            titleTextStyle: TextStyle(
-              color: Colors.black87,
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              fontFamily: 'NotoSansKR',
-            ),
-          ),
-          textTheme: const TextTheme(
-            headlineLarge: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            headlineMedium: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-            ),
-            bodyLarge: TextStyle(fontSize: 16),
-            bodyMedium: TextStyle(fontSize: 14),
-          ),
-        ),
+        theme: AppTheme.light(),
         home: const LoginScreen(),
       ),
     );

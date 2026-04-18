@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
 import '../services/api_client.dart';
 import 'home_screen.dart';
+import '../theme/app_colors.dart';
 
 class SignupScreen extends StatefulWidget {
   final String initialProvider;
@@ -18,8 +19,8 @@ class SignupScreen extends StatefulWidget {
 
 class _SignupScreenState extends State<SignupScreen> {
   // Design Constants
-  static const _gradientColors = [Color(0xFF667eea), Color(0xFF764ba2)];
-  static const _primaryColor = Color(0xFF667eea);
+  static const _gradientColors = [AppColors.teal800, AppColors.teal600];
+  static const _primaryColor = AppColors.teal800;
   static const _horizontalPadding = 32.0;
   static const _borderRadius = 16.0;
   static const _buttonHeight = 60.0;
@@ -68,10 +69,17 @@ class _SignupScreenState extends State<SignupScreen> {
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
+      leading: TextButton.icon(
         onPressed: () => Navigator.of(context).pop(),
+        style: TextButton.styleFrom(
+          foregroundColor: Colors.white,
+          minimumSize: const Size(0, 52),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+        ),
+        icon: const Icon(Icons.arrow_back_ios_new_rounded),
+        label: const Text('뒤로'),
       ),
+      titleSpacing: 0,
       title: const Text(
         '회원 가입',
         style: TextStyle(
@@ -138,7 +146,7 @@ class _SignupScreenState extends State<SignupScreen> {
         Text(
           '정보를 입력하고 시작하세요',
           style: TextStyle(
-            fontSize: 16,
+            fontSize: 18,
             color: Colors.white.withOpacity(0.8),
           ),
         ),
@@ -279,7 +287,7 @@ class _SignupScreenState extends State<SignupScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(message),
-          backgroundColor: Colors.red.shade400,
+          backgroundColor: AppColors.error600,
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.only(bottom: 20, left: 16, right: 16),
           shape: RoundedRectangleBorder(
@@ -308,8 +316,7 @@ class _CustomTextField extends StatelessWidget {
     this.validator,
   });
 
-  static const _primaryColor = Color(0xFF667eea);
-  static const _borderRadius = 16.0;
+  static const _borderRadius = 12.0;
 
   @override
   Widget build(BuildContext context) {
@@ -330,23 +337,24 @@ class _CustomTextField extends StatelessWidget {
               ),
             ],
           ),
-          child: TextField(
+          child: TextFormField(
             controller: controller,
             keyboardType: keyboardType,
             onChanged: (value) => field.didChange(value),
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
             decoration: InputDecoration(
               hintText: hint,
               hintStyle: TextStyle(
-                color: hasError ? Colors.red.shade300 : Colors.grey.shade400,
+                fontSize: 17,
+                color: hasError ? AppColors.error600 : Colors.grey.shade500,
               ),
               prefixIcon: Icon(
                 icon,
-                color: hasError ? Colors.red.shade300 : _primaryColor,
+                color: hasError ? AppColors.error600 : AppColors.teal800,
               ),
+              suffixIcon: hasError
+                  ? const Icon(Icons.error_outline, color: AppColors.error600)
+                  : null,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(_borderRadius),
                 borderSide: BorderSide.none,
@@ -354,13 +362,13 @@ class _CustomTextField extends StatelessWidget {
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(_borderRadius),
                 borderSide: hasError
-                    ? BorderSide(color: Colors.red.shade300, width: 2)
-                    : BorderSide.none,
+                    ? const BorderSide(color: AppColors.error600, width: 2)
+                    : BorderSide(color: Colors.grey.shade200, width: 1.5),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(_borderRadius),
                 borderSide: BorderSide(
-                  color: hasError ? Colors.red.shade400 : _primaryColor,
+                  color: hasError ? AppColors.error600 : AppColors.teal400,
                   width: 2,
                 ),
               ),
@@ -370,6 +378,7 @@ class _CustomTextField extends StatelessWidget {
                 horizontal: 20,
                 vertical: 18,
               ),
+              errorText: hasError ? field.errorText : null,
             ),
           ),
         );

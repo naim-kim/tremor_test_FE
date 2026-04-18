@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'signup_screen.dart';
+import '../theme/app_colors.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
   // Design Constants
-  static const _gradientColors = [Color(0xFF667eea), Color(0xFF764ba2)];
+  static const _gradientColors = [AppColors.teal800, AppColors.teal600];
   static const _horizontalPadding = 32.0;
-  static const _borderRadius = 16.0;
-  static const _buttonHeight = 60.0;
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +82,7 @@ class LoginScreen extends StatelessWidget {
           '간편하고 정확한 떨림 측정',
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 16,
+            fontSize: 18,
             color: Colors.white70,
             fontWeight: FontWeight.w400,
           ),
@@ -155,7 +154,7 @@ class LoginScreen extends StatelessWidget {
       '로그인하시면 서비스 이용약관 및\n개인정보 처리방침에 동의하게 됩니다.',
       textAlign: TextAlign.center,
       style: TextStyle(
-        fontSize: 12,
+        fontSize: 15,
         color: Colors.white.withOpacity(0.7),
         height: 1.5,
       ),
@@ -203,6 +202,8 @@ class _LoginButton extends StatelessWidget {
     this.hasBorder = false,
   });
 
+  static const double _buttonHeight = 60.0;
+
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -214,7 +215,7 @@ class _LoginButton extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Container(
-          height: 60,
+          height: _buttonHeight,
           decoration: BoxDecoration(
             border: hasBorder
                 ? Border.all(color: Colors.grey.shade200, width: 1.5)
@@ -229,7 +230,7 @@ class _LoginButton extends StatelessWidget {
               Text(
                 text,
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 18,
                   fontWeight: FontWeight.w600,
                   color: textColor,
                   letterSpacing: -0.3,
