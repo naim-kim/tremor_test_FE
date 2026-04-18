@@ -8,6 +8,7 @@ import '../models/test_result.dart';
 import '../widgets/drawing_canvas.dart';
 import '../utils/spiral_generator.dart';
 import 'result_screen.dart';
+import '../theme/app_colors.dart';
 
 class SpiralTestScreen extends StatefulWidget {
   const SpiralTestScreen({super.key});
@@ -18,8 +19,8 @@ class SpiralTestScreen extends StatefulWidget {
 
 class _SpiralTestScreenState extends State<SpiralTestScreen> {
   // Design Constants
-  static const _gradientColors = [Color(0xFF667eea), Color(0xFF764ba2)];
-  static const _primaryColor = Color(0xFF667eea);
+  static const _gradientColors = [AppColors.teal800, AppColors.teal600];
+  static const _primaryColor = AppColors.teal800;
 
   final List<DrawingPoint?> _points = []; // null을 포함하도록 변경
   int? _startTime;
@@ -172,10 +173,17 @@ class _SpiralTestScreenState extends State<SpiralTestScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
+        leading: TextButton.icon(
           onPressed: () => Navigator.of(context).pop(),
+          style: TextButton.styleFrom(
+            foregroundColor: Colors.white,
+            minimumSize: const Size(0, 52),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+          ),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          label: const Text('뒤로'),
         ),
+        titleSpacing: 0,
         title: const Text(
           '나선 그리기 검사',
           style: TextStyle(
@@ -206,7 +214,7 @@ class _SpiralTestScreenState extends State<SpiralTestScreen> {
                     const Text(
                       '나선을 따라 그려주세요',
                       style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 26,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                         letterSpacing: -0.5,
@@ -216,7 +224,7 @@ class _SpiralTestScreenState extends State<SpiralTestScreen> {
                     Text(
                       '선을 최대한 정확하게 따라가세요',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 18,
                         color: Colors.white.withOpacity(0.8),
                       ),
                     ),
@@ -296,7 +304,7 @@ class _SpiralTestScreenState extends State<SpiralTestScreen> {
                     child: Text(
                       '완료',
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 20,
                         fontWeight: FontWeight.w600,
                         color: _hasStarted
                             ? _primaryColor

@@ -5,6 +5,7 @@ import 'dart:ui' as ui;
 import '../models/test_result.dart';
 import '../widgets/drawing_comparison.dart';
 import '../widgets/metrics_card.dart';
+import '../theme/app_colors.dart';
 
 class ResultScreen extends StatelessWidget {
   final TestResult result;
@@ -12,8 +13,8 @@ class ResultScreen extends StatelessWidget {
   const ResultScreen({super.key, required this.result});
 
   // Design Constants
-  static const _gradientColors = [Color(0xFF667eea), Color(0xFF764ba2)];
-  static const _primaryColor = Color(0xFF667eea);
+  static const _gradientColors = [AppColors.teal800, AppColors.teal600];
+  static const _primaryColor = AppColors.teal800;
 
   @override
   Widget build(BuildContext context) {
@@ -24,10 +25,17 @@ class ResultScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
+        leading: TextButton.icon(
           onPressed: () => Navigator.of(context).pop(),
+          style: TextButton.styleFrom(
+            foregroundColor: Colors.white,
+            minimumSize: const Size(0, 52),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+          ),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          label: const Text('뒤로'),
         ),
+        titleSpacing: 0,
         title: const Text(
           '검사 결과',
           style: TextStyle(
@@ -57,7 +65,7 @@ class ResultScreen extends StatelessWidget {
                   Text(
                     DateFormat('yyyy년 MM월 dd일 HH:mm').format(result.timestamp),
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 15,
                       color: Colors.white.withOpacity(0.8),
                       fontWeight: FontWeight.w500,
                     ),
@@ -66,7 +74,7 @@ class ResultScreen extends StatelessWidget {
                   const Text(
                     '종합 점수',
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                       letterSpacing: -0.5,
@@ -80,7 +88,7 @@ class ResultScreen extends StatelessWidget {
                   const Text(
                     '점수 분포',
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                       letterSpacing: -0.5,
@@ -93,7 +101,7 @@ class ResultScreen extends StatelessWidget {
                   const Text(
                     '그림 비교',
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                       letterSpacing: -0.5,
@@ -108,7 +116,7 @@ class ResultScreen extends StatelessWidget {
                   const Text(
                     '세부항목 수치 계산',
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                       letterSpacing: -0.5,
@@ -161,7 +169,7 @@ class ResultScreen extends StatelessWidget {
                                     const Text(
                                       '결과 공유',
                                       style: TextStyle(
-                                        fontSize: 16,
+                                        fontSize: 18,
                                         fontWeight: FontWeight.w600,
                                         color: _primaryColor,
                                         letterSpacing: -0.3,
@@ -211,7 +219,7 @@ class ResultScreen extends StatelessWidget {
                             label: const Text(
                               '홈으로',
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 18,
                                 fontWeight: FontWeight.w600,
                                 color: _primaryColor,
                                 letterSpacing: -0.3,
@@ -343,12 +351,12 @@ class _SegmentedCircularScoreCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                colors: [AppColors.teal800, AppColors.teal600],
               ),
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF667eea).withOpacity(0.3),
+                  color: AppColors.teal800.withOpacity(0.3),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
                 ),
@@ -357,7 +365,7 @@ class _SegmentedCircularScoreCard extends StatelessWidget {
             child: Text(
               result.resultCategory,
               style: const TextStyle(
-                fontSize: 16,
+                fontSize: 18,
                 fontWeight: FontWeight.w600,
                 color: Colors.white,
                 letterSpacing: -0.3,
@@ -377,12 +385,13 @@ class _ScoreLegend extends StatelessWidget {
   const _ScoreLegend({required this.segments});
 
   Color _getColorForIndex(int index) {
+    // Keep the palette calm: teal family + warm amber. Avoid red except errors.
     final colors = [
-      const Color(0xFFFF6B6B), // 주파수 - 빨강
-      const Color(0xFFFFD93D), // 진폭 - 노랑
-      const Color(0xFF6BCF7F), // 정확도 - 초록
-      const Color(0xFF4ECDC4), // 시간 - 청록
-      const Color(0xFF95E1D3), // 속도 - 민트
+      AppColors.teal800,
+      AppColors.teal600,
+      AppColors.teal400,
+      AppColors.amber600,
+      AppColors.amber400,
     ];
     return colors[index % colors.length];
   }
@@ -416,7 +425,7 @@ class _ScoreLegend extends StatelessWidget {
                 '${entry.key} $percentage%',
                 style: TextStyle(
                   color: Colors.grey[800],
-                  fontSize: 12,
+                  fontSize: 15,
                   fontWeight: FontWeight.w600,
                   letterSpacing: -0.3,
                 ),
@@ -441,11 +450,11 @@ class _SegmentedCircularProgressPainter extends CustomPainter {
 
   Color _getColorForIndex(int index) {
     final colors = [
-      const Color(0xFFFF6B6B),
-      const Color(0xFFFFD93D),
-      const Color(0xFF6BCF7F),
-      const Color(0xFF4ECDC4),
-      const Color(0xFF95E1D3),
+      AppColors.teal800,
+      AppColors.teal600,
+      AppColors.teal400,
+      AppColors.amber600,
+      AppColors.amber400,
     ];
     return colors[index % colors.length];
   }
@@ -498,7 +507,7 @@ class _SegmentedCircularProgressPainter extends CustomPainter {
           TextSpan(
             text: percentage,
             style: const TextStyle(
-              color: Color(0xFF667eea),
+              color: AppColors.teal800,
               fontSize: 32,
               fontWeight: FontWeight.bold,
             ),
@@ -542,27 +551,8 @@ class _ResultCategoryCard extends StatelessWidget {
     required this.userName,
   });
 
-  Color _getCategoryColor(String category) {
-    switch (category) {
-      case '매우 좋음':
-        return Colors.green;
-      case '좋음':
-        return Colors.lightGreen;
-      case '보통':
-        return Colors.orange;
-      case '주의 필요':
-        return Colors.deepOrange;
-      case '병원 방문 권장':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final categoryColor = _getCategoryColor(result.resultCategory);
-
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -608,27 +598,27 @@ class _StraightLineChart extends StatelessWidget {
           children: [
             _ChartLabel(
               text: '병원 방문 권장',
-              color: Colors.red,
+              color: AppColors.error600,
               isActive: score < 40,
             ),
             _ChartLabel(
               text: '주의 필요',
-              color: Colors.deepOrange,
+              color: AppColors.amber600,
               isActive: score >= 40 && score < 55,
             ),
             _ChartLabel(
               text: '보통',
-              color: Colors.orange,
+              color: AppColors.amber400,
               isActive: score >= 55 && score < 70,
             ),
             _ChartLabel(
               text: '좋음',
-              color: Colors.lightGreen,
+              color: AppColors.teal400,
               isActive: score >= 70 && score < 85,
             ),
             _ChartLabel(
               text: '매우 좋음',
-              color: Colors.green,
+              color: AppColors.teal800,
               isActive: score >= 85,
             ),
           ],
@@ -675,7 +665,7 @@ class _ChartLabel extends StatelessWidget {
           text,
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 10,
+            fontSize: 15,
             color: isActive ? color : Colors.grey[500],
             fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
             height: 1.3,
@@ -701,11 +691,11 @@ class _StraightLineChartPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
 
     final sections = [
-      {'color': Colors.red, 'start': 0.0, 'end': 0.4},
-      {'color': Colors.deepOrange, 'start': 0.4, 'end': 0.55},
-      {'color': Colors.orange, 'start': 0.55, 'end': 0.7},
-      {'color': Colors.lightGreen, 'start': 0.7, 'end': 0.85},
-      {'color': Colors.green, 'start': 0.85, 'end': 1.0},
+      {'color': AppColors.error600, 'start': 0.0, 'end': 0.4},
+      {'color': AppColors.amber600, 'start': 0.4, 'end': 0.55},
+      {'color': AppColors.amber400, 'start': 0.55, 'end': 0.7},
+      {'color': AppColors.teal400, 'start': 0.7, 'end': 0.85},
+      {'color': AppColors.teal800, 'start': 0.85, 'end': 1.0},
     ];
 
     final y = size.height / 2;
@@ -749,7 +739,7 @@ class _StraightLineChartPainter extends CustomPainter {
       Offset(scoreX, y),
       12,
       Paint()
-        ..color = const Color(0xFF667eea)
+        ..color = AppColors.teal800
         ..style = PaintingStyle.fill,
     );
   }

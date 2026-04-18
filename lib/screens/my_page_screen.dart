@@ -7,6 +7,7 @@ import '../models/test_result.dart';
 import 'result_screen.dart';
 import 'login_screen.dart';
 import 'calibration_screen.dart';
+import '../theme/app_colors.dart';
 
 class MyPageScreen extends StatelessWidget {
   const MyPageScreen({super.key});
@@ -30,7 +31,7 @@ class MyPageScreen extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: const Color(0xFF4A90E2).withOpacity(0.1),
+                color: AppColors.teal800.withOpacity(0.10),
               ),
               child: Column(
                 children: [
@@ -38,7 +39,7 @@ class MyPageScreen extends StatelessWidget {
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF4A90E2),
+                      color: AppColors.teal800,
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -59,7 +60,7 @@ class MyPageScreen extends StatelessWidget {
                   Text(
                     userProvider.userEmail,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 15,
                       color: Colors.grey[600],
                     ),
                   ),
@@ -78,7 +79,7 @@ class MyPageScreen extends StatelessWidget {
                           ? '카카오톡 로그인'
                           : 'Google 로그인',
                       style: const TextStyle(
-                        fontSize: 12,
+                        fontSize: 15,
                         color: Colors.grey,
                       ),
                     ),
@@ -96,7 +97,7 @@ class MyPageScreen extends StatelessWidget {
                   const Text(
                     '검사 통계',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -110,7 +111,7 @@ class MyPageScreen extends StatelessWidget {
                           count: testProvider
                               .getResultsByType(TestType.spiral)
                               .length,
-                          color: const Color(0xFF4A90E2),
+                          color: AppColors.teal800,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -121,7 +122,7 @@ class MyPageScreen extends StatelessWidget {
                           count: testProvider
                               .getResultsByType(TestType.pentagon)
                               .length,
-                          color: const Color(0xFF9B59B6),
+                          color: AppColors.teal600,
                         ),
                       ),
                     ],
@@ -150,7 +151,7 @@ class MyPageScreen extends StatelessWidget {
                       const Text(
                         '검사 기록',
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 22,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -180,7 +181,7 @@ class MyPageScreen extends StatelessWidget {
                             Text(
                               '검사 기록이 없습니다',
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 18,
                                 color: Colors.grey[600],
                               ),
                             ),
@@ -215,8 +216,8 @@ class MyPageScreen extends StatelessWidget {
                       },
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        side: BorderSide(color: Colors.red[300]!),
-                        foregroundColor: Colors.red,
+                        side: const BorderSide(color: AppColors.error600, width: 1.5),
+                        foregroundColor: AppColors.error600,
                       ),
                       child: const Text('로그아웃'),
                     ),
@@ -355,8 +356,8 @@ class _TestHistoryItem extends StatelessWidget {
 
   Color _getTestColor() {
     return result.testType == TestType.spiral
-        ? const Color(0xFF4A90E2)
-        : const Color(0xFF9B59B6);
+        ? AppColors.teal800
+        : AppColors.teal600;
   }
 
   @override
@@ -435,8 +436,7 @@ class _TestHistoryItem extends StatelessWidget {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            IconButton(
-              icon: Icon(Icons.delete_outline, color: Colors.grey[400]),
+            TextButton.icon(
               onPressed: () {
                 showDialog(
                   context: context,
@@ -448,20 +448,28 @@ class _TestHistoryItem extends StatelessWidget {
                         onPressed: () => Navigator.pop(context),
                         child: const Text('취소'),
                       ),
-                      TextButton(
+                      TextButton.icon(
                         onPressed: () {
                           Navigator.pop(context);
                           onDelete();
                         },
                         style: TextButton.styleFrom(
-                          foregroundColor: Colors.red,
+                          foregroundColor: AppColors.error600,
                         ),
-                        child: const Text('삭제'),
+                        icon: const Icon(Icons.delete_outline),
+                        label: const Text('삭제'),
                       ),
                     ],
                   ),
                 );
               },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.grey[700],
+                minimumSize: const Size(0, 52),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+              ),
+              icon: const Icon(Icons.delete_outline),
+              label: const Text('삭제'),
             ),
             Icon(Icons.chevron_right, color: Colors.grey[400]),
           ],

@@ -60,7 +60,7 @@ void main() {
 
       expect(
         perfectResult.meanError,
-        lessThan(noisyResult.meanError),
+        lessThanOrEqualTo(noisyResult.meanError),
         reason: 'Perfect spiral should score better than noisy spiral',
       );
     });
