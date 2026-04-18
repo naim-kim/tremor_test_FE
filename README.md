@@ -1,6 +1,8 @@
 # Tremor Test (Flutter)
 
-Flutter client app for **tremor testing** (BCI Lab). The app guides a user through drawing-based tests (e.g. **spiral drawing** and **pentagon drawing**), calculates basic tremor metrics locally, and uploads results to a backend API.
+Flutter client app for **drawing-based tremor testing** developed in the context of **BCI Lab** work.
+
+Tremor testing in this app means capturing a user’s drawing trajectory (spiral / pentagon), extracting simple signal features (e.g. stability/error metrics and frequency-domain features), and saving the result for later review. This is intended for **research / prototyping / screening workflows** and is **not a medical device**.
 
 ## Features
 
@@ -17,9 +19,20 @@ Flutter client app for **tremor testing** (BCI Lab). The app guides a user throu
   - Fetch results: `GET /api/tests?userId=...&testType=...`
 - **Local persistence**: stores test results locally using Hive (`test_results` box)
 
+## Screenshots / demo
+
+Add screenshots or a short GIF here (recommended):
+
+- Home screen
+- Spiral drawing screen
+- Result screen
+
+Suggested path: `docs/screenshots/` (not currently included).
+
 ## Tech stack
 
 - **Flutter** (Dart SDK `>=3.0.0 <4.0.0`)
+- **Tested with**: Flutter **3.35.5** (stable), Dart **3.9.2** (from `flutter --version`)
 - **State**: Provider
 - **HTTP**: `package:http`
 - **Storage**: Hive / SharedPreferences
@@ -65,7 +78,7 @@ This app resolves the backend base URL in this order:
 
 ### Option A: Use a `.env` file (recommended)
 
-Create `tremor_flutter/.env`:
+Copy `.env.example` to `.env`:
 
 ```env
 API_BASE_URL=http://<YOUR_BACKEND_HOST>:8080
@@ -123,3 +136,69 @@ flutter build ios
 - **Hive errors after model changes**
   - Ensure adapters are registered in `main.dart`
   - Re-run build_runner if generated files changed
+
+- **iOS CocoaPods issues**
+  - From `ios/`: run `pod repo update` then `pod install`
+  - If you upgraded Flutter, consider `pod deintegrate && pod install` (last resort)
+
+- **`build_runner` conflicts when switching branches**
+  - Run: `flutter pub run build_runner build --delete-conflicting-outputs`
+
+## Tremor metrics (what we compute)
+
+The app computes and/or stores metrics similar to:
+
+- **Error vs reference path** (e.g. mean deviation for spiral-following)
+- **Frequency-domain features** (FFT-based), such as dominant tremor frequency and related magnitudes
+- **Summary stats** (e.g. mean / std), plus derived overall score and category labels shown in the UI
+
+Exact formulas and clinical interpretation are project-dependent; treat outputs as engineering features, not diagnosis.
+
+## Backend dependency (API contract)
+
+This repo is **frontend-only**; you must run a compatible backend that implements the endpoints below.
+
+### Endpoints used by the app
+
+- **Create user**: `POST /api/users`
+  - JSON body:
+    - `name` (string)
+    - `email` (string)
+    - `loginProvider` (string)
+  - Success: expects **201** and a JSON object
+
+- **Save test result**: `POST /api/tests/csv`
+  - Multipart form-data:
+    - `metadata` (string): **JSON** containing at least:
+      - `userId` (number)
+      - `testType` (string, e.g. `spiral` / `pentagon`)
+      - optional numeric fields such as `overallScore`, `frequency`, `amplitude`, `mean`, `std`, etc.
+      - optional `performedAt` (ISO-8601 string)
+      - optional `csvContent` (string)
+    - `image` (file, optional): PNG image for pentagon tests
+  - Success: expects **201** and a JSON object
+
+- **Fetch tests**: `GET /api/tests?userId=...&testType=...`
+  - Success: expects **200** and a JSON array of objects
+
+If you have a separate backend repo, link it here once known.
+
+## Testing
+
+Run all tests:
+
+```bash
+flutter test
+```
+
+Current tests include:
+- `test/spiral_analyzer_test.dart` (unit test for spiral analysis)
+- `test/widget_test.dart` (template widget test; may need updating to match the app widget tree)
+
+## Contributing
+
+See `CONTRIBUTING.md`.
+
+## License
+
+See `LICENSE`.
