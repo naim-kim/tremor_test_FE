@@ -18,14 +18,6 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends State<SignupScreen> {
-  // Design Constants
-  static const _gradientColors = [AppColors.teal800, AppColors.teal600];
-  static const _primaryColor = AppColors.teal800;
-  static const _horizontalPadding = 32.0;
-  static const _borderRadius = 16.0;
-  static const _buttonHeight = 60.0;
-
-  // Form State
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -48,212 +40,160 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: _buildAppBar(),
-      body: Container(
-        color: Colors.white,
-        child: SafeArea(
-          child: _buildForm(),
-        ),
-      ),
-    );
-  }
-
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      backgroundColor: AppColors.teal800,
-      elevation: 0,
-      leadingWidth: 100,
-      leading: TextButton.icon(
-        onPressed: () => Navigator.of(context).pop(),
-        style: TextButton.styleFrom(
-          foregroundColor: Colors.white,
-          minimumSize: const Size(0, 52),
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-        ),
-        icon: const Icon(Icons.arrow_back_ios_new_rounded),
-        label: const Text('뒤로'),
-      ),
-      titleSpacing: 0,
-      title: const Text(
-        '회원 가입',
-        style: TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w600,
-          letterSpacing: -0.5,
-        ),
-      ),
-      centerTitle: true,
-    );
-  }
-
-  Widget _buildForm() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(_horizontalPadding),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: constraints.maxHeight - (_horizontalPadding * 2),
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Nav bar ──────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                child: Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF2F3F7),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    size: 15,
+                    color: Colors.grey[600],
+                  ),
+                ),
               ),
-              child: IntrinsicHeight(
+            ),
+
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(28, 32, 28, 28),
                 child: Form(
                   key: _formKey,
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Spacer(),
-                      _buildWelcomeText(),
-                      const SizedBox(height: 40),
-                      _buildNameField(),
+                      const Text(
+                        '환영합니다',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF1A1A18),
+                          letterSpacing: -0.8,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        '정보를 입력하고 시작하세요',
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: Colors.grey[500],
+                        ),
+                      ),
+
+                      const SizedBox(height: 36),
+
+                      // ── Name field ─────────────────────────────────
+                      _FieldLabel(label: '이름'),
+                      const SizedBox(height: 8),
+                      _CustomTextField(
+                        controller: _nameController,
+                        hint: '이름을 입력해주세요',
+                        icon: Icons.person_outline_rounded,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return '이름을 입력해주세요';
+                          }
+                          return null;
+                        },
+                      ),
+
                       const SizedBox(height: 16),
-                      _buildEmailField(),
-                      const Spacer(flex: 2),
-                      const SizedBox(height: 20),
-                      _buildSubmitButton(),
-                      const SizedBox(height: 20),
+
+                      // ── Email field ────────────────────────────────
+                      _FieldLabel(label: '이메일'),
+                      const SizedBox(height: 8),
+                      _CustomTextField(
+                        controller: _emailController,
+                        hint: '이메일을 입력해주세요',
+                        icon: Icons.email_outlined,
+                        keyboardType: TextInputType.emailAddress,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return '이메일을 입력해주세요';
+                          }
+                          if (!value.contains('@')) {
+                            return '올바른 이메일 형식을 입력해주세요';
+                          }
+                          return null;
+                        },
+                      ),
+
+                      const SizedBox(height: 36),
+
+                      // ── Submit ─────────────────────────────────────
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: ElevatedButton(
+                          onPressed: _isSubmitting ? null : _submit,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.teal800,
+                            foregroundColor: Colors.white,
+                            disabledBackgroundColor:
+                                AppColors.teal800.withOpacity(0.3),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14)),
+                            textStyle: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          child: _isSubmitting
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white),
+                                  ),
+                                )
+                              : const Text('회원가입 및 계속하기'),
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ),
             ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildWelcomeText() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          '환영합니다',
-          style: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
-            color: AppColors.teal800,
-            letterSpacing: -0.5,
-          ),
+          ],
         ),
-        const SizedBox(height: 8),
-        Text(
-          '정보를 입력하고 시작하세요',
-          style: TextStyle(
-            fontSize: 18,
-            color: AppColors.teal800.withOpacity(0.8),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildNameField() {
-    return _CustomTextField(
-      controller: _nameController,
-      hint: '이름을 입력해주세요',
-      icon: Icons.person_outline_rounded,
-      validator: (value) {
-        if (value == null || value.trim().isEmpty) {
-          return '이름을 입력해주세요';
-        }
-        return null;
-      },
-    );
-  }
-
-  Widget _buildEmailField() {
-    return _CustomTextField(
-      controller: _emailController,
-      hint: '이메일을 입력해주세요',
-      icon: Icons.email_outlined,
-      keyboardType: TextInputType.emailAddress,
-      validator: (value) {
-        if (value == null || value.trim().isEmpty) {
-          return '이메일을 입력해주세요';
-        }
-        if (!value.contains('@')) {
-          return '올바른 이메일 형식을 입력해주세요';
-        }
-        return null;
-      },
-    );
-  }
-
-  Widget _buildSubmitButton() {
-    return Container(
-      height: _buttonHeight,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.white, Colors.white.withOpacity(0.95)],
-        ),
-        borderRadius: BorderRadius.circular(_borderRadius),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: ElevatedButton(
-        onPressed: _isSubmitting ? null : _submit,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          shadowColor: Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(_borderRadius),
-          ),
-        ),
-        child: _isSubmitting
-            ? const SizedBox(
-                height: 24,
-                width: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  valueColor: AlwaysStoppedAnimation<Color>(_primaryColor),
-                ),
-              )
-            : const Text(
-                '회원가입 및 계속하기',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: _primaryColor,
-                  letterSpacing: -0.3,
-                ),
-              ),
       ),
     );
   }
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _isSubmitting = true);
-
     try {
       final userProvider = Provider.of<UserProvider>(context, listen: false);
       final apiClient = Provider.of<ApiClient>(context, listen: false);
-
       await userProvider.loginAndSync(
         name: _nameController.text.trim(),
         email: _emailController.text.trim(),
         loginProvider: _provider,
         apiClient: apiClient,
       );
-
       if (!mounted) return;
-
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const HomeScreen()),
         (route) => false,
       );
     } catch (e) {
       if (!mounted) return;
-
-      // Parse error message
       String errorMessage = '회원가입 실패';
       if (e.toString().contains('409') ||
           e.toString().contains('already exists')) {
@@ -262,32 +202,24 @@ class _SignupScreenState extends State<SignupScreen> {
           e.toString().contains('connection')) {
         errorMessage = '네트워크 연결을 확인해주세요';
       }
-
       _showErrorSnackBar(errorMessage);
     } finally {
-      if (mounted) {
-        setState(() => _isSubmitting = false);
-      }
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
   void _showErrorSnackBar(String message) {
-    // Dismiss keyboard to make room for SnackBar
     FocusScope.of(context).unfocus();
-
-    // Small delay to allow keyboard to dismiss
     Future.delayed(const Duration(milliseconds: 100), () {
       if (!mounted) return;
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(message),
-          backgroundColor: AppColors.error600,
+          backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.only(bottom: 20, left: 16, right: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           duration: const Duration(seconds: 3),
         ),
       );
@@ -295,7 +227,28 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 }
 
-// Custom Text Field Widget
+// ── Field label ───────────────────────────────────────────────────────────────
+
+class _FieldLabel extends StatelessWidget {
+  final String label;
+  const _FieldLabel({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      label,
+      style: const TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        color: Color(0xFF1A1A18),
+        letterSpacing: -0.1,
+      ),
+    );
+  }
+}
+
+// ── Text field ────────────────────────────────────────────────────────────────
+
 class _CustomTextField extends StatelessWidget {
   final TextEditingController controller;
   final String hint;
@@ -311,94 +264,67 @@ class _CustomTextField extends StatelessWidget {
     this.validator,
   });
 
-  static const _borderRadius = 12.0;
-
   @override
   Widget build(BuildContext context) {
     return FormField<String>(
       validator: (_) => validator?.call(controller.text),
       builder: (FormFieldState<String> field) {
         final hasError = field.hasError;
-
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.teal800,
-                borderRadius: BorderRadius.circular(_borderRadius),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+            TextFormField(
+              controller: controller,
+              keyboardType: keyboardType,
+              onChanged: (v) => field.didChange(v),
+              style: const TextStyle(
+                fontSize: 15,
+                color: Color(0xFF1A1A18),
               ),
-              child: TextFormField(
-                controller: controller,
-                keyboardType: keyboardType,
-                onChanged: (value) => field.didChange(value),
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black,
+              decoration: InputDecoration(
+                hintText: hint,
+                hintStyle: TextStyle(fontSize: 15, color: Colors.grey[400]),
+                prefixIcon: Icon(
+                  icon,
+                  size: 18,
+                  color: hasError ? Colors.red.shade400 : Colors.grey[400],
                 ),
-                decoration: InputDecoration(
-                  hintText: hint,
-                  hintStyle: TextStyle(
-                    fontSize: 17,
-                    color: hasError ? AppColors.error600 : Colors.grey.shade500,
-                  ),
-                  prefixIcon: Icon(
-                    icon,
-                    color: hasError ? AppColors.error600 : AppColors.teal800,
-                  ),
-                  suffixIcon: hasError
-                      ? const Icon(Icons.error_outline,
-                          color: AppColors.error600)
-                      : null,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(_borderRadius),
-                    borderSide: BorderSide.none,
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(_borderRadius),
-                    borderSide: hasError
-                        ? const BorderSide(color: AppColors.error600, width: 2)
-                        : BorderSide(color: Colors.grey.shade200, width: 1.5),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(_borderRadius),
-                    borderSide: BorderSide(
-                      color: hasError ? AppColors.error600 : AppColors.teal400,
-                      width: 2,
-                    ),
-                  ),
-                  filled: true,
-                  fillColor: Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 18,
+                filled: true,
+                fillColor: const Color(0xFFF7F8FA),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: hasError
+                      ? BorderSide(color: Colors.red.shade300, width: 1)
+                      : BorderSide(
+                          color: Colors.black.withOpacity(0.07), width: 0.5),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: hasError ? Colors.red.shade400 : AppColors.teal800,
+                    width: 1.5,
                   ),
                 ),
               ),
             ),
             if (hasError) ...[
-              const SizedBox(height: 10),
+              const SizedBox(height: 6),
               Row(
                 children: [
-                  const Icon(Icons.error_outline,
-                      size: 18, color: AppColors.error600),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      field.errorText ?? '',
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.error600,
-                      ),
+                  Icon(Icons.error_outline,
+                      size: 14, color: Colors.red.shade400),
+                  const SizedBox(width: 5),
+                  Text(
+                    field.errorText ?? '',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.red.shade400,
                     ),
                   ),
                 ],
