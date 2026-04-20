@@ -5,165 +5,118 @@ import '../theme/app_colors.dart';
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
-  // Design Constants
-  static const _gradientColors = [AppColors.teal800, AppColors.teal600];
-  static const _horizontalPadding = 32.0;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: _gradientColors,
-          ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: _horizontalPadding),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildLogo(),
-                const SizedBox(height: 16),
-                _buildTitle(),
-                const SizedBox(height: 12),
-                _buildLoginButtons(context),
-                const SizedBox(height: 16),
-                _buildTermsText(),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 28),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Spacer(flex: 2),
 
-  Widget _buildLogo() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: const Icon(
-        Icons.assessment,
-        size: 64,
-        color: Colors.white,
-      ),
-    );
-  }
-
-  Widget _buildTitle() {
-    return const Column(
-      children: [
-        Text(
-          '떨림 검사',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 36,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-            letterSpacing: -0.5,
-          ),
-        ),
-        SizedBox(height: 12),
-        Text(
-          '간편하고 정확한 떨림 측정',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 18,
-            color: Colors.white70,
-            fontWeight: FontWeight.w400,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLoginButtons(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _LoginButton(
-          onTap: () => _showComingSoon(context),
-          backgroundColor: const Color(0xFFFEE500),
-          textColor: Colors.black87,
-          icon: Icons.chat_bubble_rounded,
-          text: '카카오 로그인',
-        ),
-        const SizedBox(height: 12),
-        _LoginButton(
-          onTap: () => _showComingSoon(context),
-          backgroundColor: Colors.white,
-          textColor: Colors.black87,
-          icon: Icons.g_mobiledata_rounded,
-          text: '구글 로그인',
-          hasBorder: true,
-        ),
-        const SizedBox(height: 24),
-        _buildSignupLink(context),
-      ],
-    );
-  }
-
-  Widget _buildSignupLink(BuildContext context) {
-    return GestureDetector(
-      onTap: () => _navigateToSignup(context),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              '이메일로 ',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.white.withOpacity(0.8),
+              // ── Logo & title ─────────────────────────────────────────
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE1F5EE),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(
+                  Icons.assessment_rounded,
+                  size: 26,
+                  color: AppColors.teal800,
+                ),
               ),
-            ),
-            const Text(
-              '회원가입',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-                decoration: TextDecoration.underline,
-                decorationColor: Colors.white,
-                decorationThickness: 1.5,
+              const SizedBox(height: 20),
+              const Text(
+                '떨림 검사',
+                style: TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1A1A18),
+                  letterSpacing: -0.8,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 6),
+              Text(
+                '간편하고 정확한 떨림 측정',
+                style: TextStyle(
+                  fontSize: 15,
+                  color: Colors.grey[500],
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+
+              const Spacer(flex: 2),
+
+              // ── Buttons ──────────────────────────────────────────────
+              _LoginButton(
+                onTap: () => _showComingSoon(context),
+                backgroundColor: const Color(0xFFFEE500),
+                textColor: const Color(0xFF1A1A18),
+                icon: Icons.chat_bubble_rounded,
+                label: '카카오 로그인',
+              ),
+              const SizedBox(height: 10),
+              _LoginButton(
+                onTap: () => _showComingSoon(context),
+                backgroundColor: const Color(0xFFF7F8FA),
+                textColor: const Color(0xFF1A1A18),
+                icon: Icons.g_mobiledata_rounded,
+                label: '구글 로그인',
+              ),
+
+              const SizedBox(height: 20),
+
+              // ── Signup link ──────────────────────────────────────────
+              Center(
+                child: GestureDetector(
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          const SignupScreen(initialProvider: 'manual'),
+                    ),
+                  ),
+                  child: RichText(
+                    text: TextSpan(
+                      style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                      children: [
+                        const TextSpan(text: '이메일로 '),
+                        TextSpan(
+                          text: '회원가입',
+                          style: TextStyle(
+                            color: AppColors.teal800,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              const Spacer(),
+
+              // ── Terms ────────────────────────────────────────────────
+              Center(
+                child: Text(
+                  '로그인하시면 서비스 이용약관 및 개인정보 처리방침에 동의하게 됩니다.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[400],
+                    height: 1.5,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildTermsText() {
-    return Text(
-      '로그인하시면 서비스 이용약관 및\n개인정보 처리방침에 동의하게 됩니다.',
-      textAlign: TextAlign.center,
-      style: TextStyle(
-        fontSize: 15,
-        color: Colors.white.withOpacity(0.7),
-        height: 1.5,
-      ),
-    );
-  }
-
-  void _navigateToSignup(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => const SignupScreen(initialProvider: 'manual'),
       ),
     );
   }
@@ -174,9 +127,7 @@ class LoginScreen extends StatelessWidget {
         content: const Text('곧 출시됩니다'),
         backgroundColor: Colors.black87,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(16),
         duration: const Duration(seconds: 2),
       ),
@@ -189,54 +140,42 @@ class _LoginButton extends StatelessWidget {
   final Color backgroundColor;
   final Color textColor;
   final IconData icon;
-  final String text;
-  final bool hasBorder;
+  final String label;
 
   const _LoginButton({
     required this.onTap,
     required this.backgroundColor,
     required this.textColor,
     required this.icon,
-    required this.text,
-    this.hasBorder = false,
+    required this.label,
   });
-
-  static const double _buttonHeight = 60.0;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: backgroundColor,
-      borderRadius: BorderRadius.circular(16),
-      elevation: hasBorder ? 0 : 2,
-      shadowColor: Colors.black.withOpacity(0.1),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          height: _buttonHeight,
-          decoration: BoxDecoration(
-            border: hasBorder
-                ? Border.all(color: Colors.grey.shade200, width: 1.5)
-                : null,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: textColor, size: 28),
-              const SizedBox(width: 12),
-              Text(
-                text,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: textColor,
-                  letterSpacing: -0.3,
-                ),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        height: 52,
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: textColor, size: 22),
+            const SizedBox(width: 10),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: textColor,
+                letterSpacing: -0.2,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
