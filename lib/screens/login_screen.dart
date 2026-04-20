@@ -24,16 +24,15 @@ class LoginScreen extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: _horizontalPadding),
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const SizedBox(height: 60),
                 _buildLogo(),
-                const SizedBox(height: 32),
+                const SizedBox(height: 16),
                 _buildTitle(),
-                const Spacer(),
+                const SizedBox(height: 12),
                 _buildLoginButtons(context),
                 const SizedBox(height: 16),
                 _buildTermsText(),
-                const SizedBox(height: 40),
               ],
             ),
           ),
@@ -108,7 +107,7 @@ class LoginScreen extends StatelessWidget {
           backgroundColor: Colors.white,
           textColor: Colors.black87,
           icon: Icons.g_mobiledata_rounded,
-          text: 'Google 로그인',
+          text: '구글 로그인',
           hasBorder: true,
         ),
         const SizedBox(height: 24),
