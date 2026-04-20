@@ -10,13 +10,13 @@ import 'result_screen.dart';
 import 'all_results_screen.dart';
 import '../theme/app_colors.dart';
 
+String _compactCategory(String value) {
+  final head = value.split(':').first.trim();
+  return head.isEmpty ? value : head;
+}
+
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
-
-  // Design Constants
-  static const _gradientColors = [AppColors.teal800, AppColors.teal600];
-  static const _primaryColor = AppColors.teal800;
-  static const _secondaryColor = AppColors.teal600;
 
   @override
   Widget build(BuildContext context) {
@@ -24,182 +24,144 @@ class HomeScreen extends StatelessWidget {
     final testProvider = Provider.of<TestProvider>(context);
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: const Padding(
-          padding: EdgeInsets.all(12.0),
-          child: Icon(
-            Icons.assessment,
-            color: Colors.white,
-          ),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: TextButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const MyPageScreen()),
-                );
-              },
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.white,
-                minimumSize: const Size(0, 52),
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-              ),
-              icon: const Icon(Icons.person_outline),
-              label: const Text('마이페이지'),
-            ),
-          ),
-        ],
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: _gradientColors,
-          ),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(24.0, 0, 24.0, 24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Greeting
-                  Text(
-                    '${userProvider.userName}님,',
-                    style: const TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  Text(
-                    '안녕하세요!',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w400,
-                      color: Colors.white.withOpacity(0.9),
-                    ),
-                  ),
-                  const SizedBox(height: 25),
-
-                  // Spiral Test Card
-                  _TestCard(
-                    title: '나선 그리기 검사',
-                    description: '나선을 따라 그려주세요',
-                    icon: Icons.refresh,
-                    color: _primaryColor,
-                    lastResult: testProvider.getLatestResult(TestType.spiral),
-                    onTestPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const SpiralTestScreen(),
-                        ),
-                      );
-                    },
-                    onResultPressed: (result) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ResultScreen(result: result),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Pentagon Test Card
-                  _TestCard(
-                    title: '오각형 그리기 검사',
-                    description: '참고 그림을 보고 따라 그려주세요',
-                    icon: Icons.pentagon_outlined,
-                    color: _secondaryColor,
-                    lastResult: testProvider.getLatestResult(TestType.pentagon),
-                    onTestPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const PentagonTestScreen(),
-                        ),
-                      );
-                    },
-                    onResultPressed: (result) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ResultScreen(result: result),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 25),
-
-                  // All results button
-                  SizedBox(
-                    width: double.infinity,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.15),
-                            blurRadius: 15,
-                            offset: const Offset(0, 8),
+      backgroundColor: const Color(0xFFF2F3F7),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 36),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── App bar ──────────────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.fromLTRB(4, 16, 4, 0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '오늘의 검사',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.grey[500],
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${userProvider.userName}님, 안녕하세요 👋',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1A1A18),
+                              letterSpacing: -0.5,
+                            ),
                           ),
                         ],
                       ),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const AllResultsScreen(),
-                              ),
-                            );
-                          },
-                          borderRadius: BorderRadius.circular(16),
-                          child: const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 16),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.history_rounded,
-                                  color: _primaryColor,
-                                  size: 24,
-                                ),
-                                SizedBox(width: 8),
-                                Text(
-                                  '모든 기록 보기',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w600,
-                                    color: _primaryColor,
-                                    letterSpacing: -0.3,
-                                  ),
-                                ),
-                              ],
-                            ),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const MyPageScreen()),
+                      ),
+                      child: Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.black.withOpacity(0.08),
+                            width: 0.5,
                           ),
+                        ),
+                        child: Icon(
+                          Icons.person_outline_rounded,
+                          size: 18,
+                          color: Colors.grey[600],
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
+
+              const SizedBox(height: 24),
+
+              // ── Test cards ─────────────────────────────────────────────
+              _TestCard(
+                title: '나선 그리기',
+                subtitle: 'Spiral drawing test',
+                icon: Icons.refresh_rounded,
+                accentColor: AppColors.teal800,
+                accentLight: const Color(0xFFE1F5EE),
+                lastResult: testProvider.getLatestResult(TestType.spiral),
+                onTestPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SpiralTestScreen()),
+                ),
+                onResultPressed: (result) => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => ResultScreen(result: result)),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              _TestCard(
+                title: '오각형 그리기',
+                subtitle: 'Pentagon drawing test',
+                icon: Icons.pentagon_outlined,
+                accentColor: AppColors.teal600,
+                accentLight: const Color(0xFFE1F5EE),
+                lastResult: testProvider.getLatestResult(TestType.pentagon),
+                onTestPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PentagonTestScreen()),
+                ),
+                onResultPressed: (result) => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => ResultScreen(result: result)),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // ── All results ────────────────────────────────────────────
+              SizedBox(
+                width: double.infinity,
+                height: 44,
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AllResultsScreen()),
+                  ),
+                  icon: Icon(Icons.access_time_rounded,
+                      size: 15, color: Colors.grey[500]),
+                  label: Text(
+                    '모든 기록 보기',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    side: BorderSide(
+                        color: Colors.black.withOpacity(0.10), width: 0.5),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -207,20 +169,24 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
+// ── Test card ─────────────────────────────────────────────────────────────────
+
 class _TestCard extends StatelessWidget {
   final String title;
-  final String description;
+  final String subtitle;
   final IconData icon;
-  final Color color;
+  final Color accentColor;
+  final Color accentLight;
   final TestResult? lastResult;
   final VoidCallback onTestPressed;
   final Function(TestResult) onResultPressed;
 
   const _TestCard({
     required this.title,
-    required this.description,
+    required this.subtitle,
     required this.icon,
-    required this.color,
+    required this.accentColor,
+    required this.accentLight,
     required this.lastResult,
     required this.onTestPressed,
     required this.onResultPressed,
@@ -232,42 +198,28 @@ class _TestCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
+        border: Border.all(color: Colors.black.withOpacity(0.06), width: 0.5),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Header row ─────────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+            child: Row(
               children: [
+                // Icon box
                 Container(
-                  padding: const EdgeInsets.all(14),
+                  width: 40,
+                  height: 40,
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        color,
-                        color.withOpacity(0.7),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
-                      BoxShadow(
-                        color: color.withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+                    color: accentLight,
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(icon, color: Colors.white, size: 28),
+                  child: Icon(icon, color: accentColor, size: 20),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 12),
+                // Title
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -275,245 +227,187 @@ class _TestCard extends StatelessWidget {
                       Text(
                         title,
                         style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: -0.3,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1A1A18),
+                          letterSpacing: -0.2,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 1),
                       Text(
-                        description,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
+                        subtitle,
+                        style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            // Last Result or No Result
-            if (lastResult == null)
-              _NoResultWidget(onPressed: onTestPressed)
-            else
-              _LastResultWidget(
-                result: lastResult!,
-                color: color,
-                onTestPressed: onTestPressed,
-                onResultPressed: () => onResultPressed(lastResult!),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _NoResultWidget extends StatelessWidget {
-  final VoidCallback onPressed;
-
-  const _NoResultWidget({required this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Colors.grey[50]!,
-            Colors.grey[100]!,
-          ],
-        ),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        children: [
-          Icon(
-            Icons.analytics_outlined,
-            size: 40,
-            color: Colors.grey[400],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            '최근 기록이 없어요',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: onPressed,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF667eea),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: const Text(
-                '테스트하러 가기',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: -0.3,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _LastResultWidget extends StatelessWidget {
-  final TestResult result;
-  final Color color;
-  final VoidCallback onTestPressed;
-  final VoidCallback onResultPressed;
-
-  const _LastResultWidget({
-    required this.result,
-    required this.color,
-    required this.onTestPressed,
-    required this.onResultPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            color.withOpacity(0.1),
-            color.withOpacity(0.05),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: color.withOpacity(0.2),
-          width: 1.5,
-        ),
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Flexible(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '최근 검사 결과',
+                // Score or status pill
+                if (lastResult != null)
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: accentLight,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      '${lastResult!.overallScore.toStringAsFixed(0)}점',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: accentColor,
+                      ),
+                    ),
+                  )
+                else
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF2F3F7),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      '미완료',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey[600],
                         fontWeight: FontWeight.w500,
+                        color: Colors.grey[500],
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      result.resultCategory,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: -0.3,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [color, color.withOpacity(0.8)],
                   ),
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: color.withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Text(
-                  '${result.overallScore.toStringAsFixed(0)}점',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: onResultPressed,
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: color, width: 1.5),
-                    foregroundColor: color,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    '결과 보기',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: -0.3,
-                    ),
-                  ),
-                ),
+
+          // ── Info bar ───────────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF7F8FA),
+                borderRadius: BorderRadius.circular(10),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: onTestPressed,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: color,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+              child: lastResult != null
+                  ? Row(
+                      children: [
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: accentColor,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '최근 결과',
+                          style:
+                              TextStyle(fontSize: 12, color: Colors.grey[500]),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            _compactCategory(lastResult!.resultCategory),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF1A1A18),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    )
+                  : Row(
+                      children: [
+                        Icon(Icons.info_outline_rounded,
+                            size: 14, color: Colors.grey[400]),
+                        const SizedBox(width: 6),
+                        Text(
+                          '아직 검사 기록이 없어요',
+                          style:
+                              TextStyle(fontSize: 12, color: Colors.grey[500]),
+                        ),
+                      ],
+                    ),
+            ),
+          ),
+
+          // ── Action buttons ─────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+            child: lastResult != null
+                ? Row(
+                    children: [
+                      Expanded(
+                        child: SizedBox(
+                          height: 40,
+                          child: OutlinedButton(
+                            onPressed: () => onResultPressed(lastResult!),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFF1A1A18),
+                              side: BorderSide(
+                                color: Colors.black.withOpacity(0.12),
+                                width: 0.5,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              textStyle: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            child: const Text('결과 보기'),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: SizedBox(
+                          height: 40,
+                          child: ElevatedButton(
+                            onPressed: onTestPressed,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: accentColor,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              textStyle: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            child: const Text('다시 검사'),
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                : SizedBox(
+                    width: double.infinity,
+                    height: 40,
+                    child: ElevatedButton(
+                      onPressed: onTestPressed,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: accentColor,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      child: const Text('검사 시작하기'),
                     ),
                   ),
-                  child: const Text(
-                    '다시 검사',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: -0.3,
-                    ),
-                  ),
-                ),
-              ),
-            ],
           ),
         ],
       ),
