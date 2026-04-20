@@ -51,13 +51,7 @@ class _SignupScreenState extends State<SignupScreen> {
       extendBodyBehindAppBar: true,
       appBar: _buildAppBar(),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: _gradientColors,
-          ),
-        ),
+        color: Colors.white,
         child: SafeArea(
           child: _buildForm(),
         ),
@@ -67,8 +61,9 @@ class _SignupScreenState extends State<SignupScreen> {
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.teal800,
       elevation: 0,
+      leadingWidth: 100,
       leading: TextButton.icon(
         onPressed: () => Navigator.of(context).pop(),
         style: TextButton.styleFrom(
@@ -138,7 +133,7 @@ class _SignupScreenState extends State<SignupScreen> {
           style: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: AppColors.teal800,
             letterSpacing: -0.5,
           ),
         ),
@@ -147,7 +142,7 @@ class _SignupScreenState extends State<SignupScreen> {
           '정보를 입력하고 시작하세요',
           style: TextStyle(
             fontSize: 18,
-            color: Colors.white.withOpacity(0.8),
+            color: AppColors.teal800.withOpacity(0.8),
           ),
         ),
       ],
@@ -325,62 +320,91 @@ class _CustomTextField extends StatelessWidget {
       builder: (FormFieldState<String> field) {
         final hasError = field.hasError;
 
-        return Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(_borderRadius),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: TextFormField(
-            controller: controller,
-            keyboardType: keyboardType,
-            onChanged: (value) => field.didChange(value),
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-            decoration: InputDecoration(
-              hintText: hint,
-              hintStyle: TextStyle(
-                fontSize: 17,
-                color: hasError ? AppColors.error600 : Colors.grey.shade500,
-              ),
-              prefixIcon: Icon(
-                icon,
-                color: hasError ? AppColors.error600 : AppColors.teal800,
-              ),
-              suffixIcon: hasError
-                  ? const Icon(Icons.error_outline, color: AppColors.error600)
-                  : null,
-              border: OutlineInputBorder(
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.teal800,
                 borderRadius: BorderRadius.circular(_borderRadius),
-                borderSide: BorderSide.none,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(_borderRadius),
-                borderSide: hasError
-                    ? const BorderSide(color: AppColors.error600, width: 2)
-                    : BorderSide(color: Colors.grey.shade200, width: 1.5),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(_borderRadius),
-                borderSide: BorderSide(
-                  color: hasError ? AppColors.error600 : AppColors.teal400,
-                  width: 2,
+              child: TextFormField(
+                controller: controller,
+                keyboardType: keyboardType,
+                onChanged: (value) => field.didChange(value),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black,
+                ),
+                decoration: InputDecoration(
+                  hintText: hint,
+                  hintStyle: TextStyle(
+                    fontSize: 17,
+                    color: hasError ? AppColors.error600 : Colors.grey.shade500,
+                  ),
+                  prefixIcon: Icon(
+                    icon,
+                    color: hasError ? AppColors.error600 : AppColors.teal800,
+                  ),
+                  suffixIcon: hasError
+                      ? const Icon(Icons.error_outline,
+                          color: AppColors.error600)
+                      : null,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(_borderRadius),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(_borderRadius),
+                    borderSide: hasError
+                        ? const BorderSide(color: AppColors.error600, width: 2)
+                        : BorderSide(color: Colors.grey.shade200, width: 1.5),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(_borderRadius),
+                    borderSide: BorderSide(
+                      color: hasError ? AppColors.error600 : AppColors.teal400,
+                      width: 2,
+                    ),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 18,
+                  ),
                 ),
               ),
-              filled: true,
-              fillColor: Colors.white,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 18,
-              ),
-              errorText: hasError ? field.errorText : null,
             ),
-          ),
+            if (hasError) ...[
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  const Icon(Icons.error_outline,
+                      size: 18, color: AppColors.error600),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      field.errorText ?? '',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.error600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
         );
       },
     );
