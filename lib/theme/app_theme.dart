@@ -105,7 +105,7 @@ class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          minimumSize: const Size.fromHeight(minTapHeight),
+          minimumSize: const Size(0, minTapHeight),
           backgroundColor: AppColors.teal800,
           foregroundColor: Colors.white,
           textStyle: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
@@ -114,7 +114,7 @@ class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          minimumSize: const Size.fromHeight(minTapHeight),
+          minimumSize: const Size(0, minTapHeight),
           foregroundColor: AppColors.teal800,
           side: const BorderSide(color: AppColors.teal800, width: 1.5),
           textStyle: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
@@ -123,7 +123,7 @@ class AppTheme {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          minimumSize: const Size.fromHeight(minTapHeight),
+          minimumSize: const Size(0, minTapHeight),
           foregroundColor: AppColors.teal800,
           textStyle: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
