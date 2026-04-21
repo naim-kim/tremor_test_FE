@@ -7,369 +7,320 @@ import '../widgets/drawing_comparison.dart';
 import '../widgets/metrics_card.dart';
 import '../theme/app_colors.dart';
 
+String _compactCategory(String value) {
+  final head = value.split(':').first.trim();
+  return head.isEmpty ? value : head;
+}
+
 class ResultScreen extends StatelessWidget {
   final TestResult result;
-
   const ResultScreen({super.key, required this.result});
-
-  // Design Constants
-  static const _gradientColors = [AppColors.teal800, AppColors.teal600];
-  static const _primaryColor = AppColors.teal800;
 
   @override
   Widget build(BuildContext context) {
-    final userName = result.userId;
-
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: TextButton.icon(
-          onPressed: () => Navigator.of(context).pop(),
-          style: TextButton.styleFrom(
-            foregroundColor: Colors.white,
-            minimumSize: const Size(0, 52),
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-          ),
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          label: const Text('뒤로'),
-        ),
-        titleSpacing: 0,
-        title: const Text(
-          '검사 결과',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-            letterSpacing: -0.5,
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: _gradientColors,
-          ),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      backgroundColor: const Color(0xFFF2F3F7),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // ── App bar ────────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: Row(
                 children: [
-                  const SizedBox(height: 8),
-                  Text(
-                    DateFormat('yyyy년 MM월 dd일 HH:mm').format(result.timestamp),
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Colors.white.withOpacity(0.8),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    '종합 점수',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  // Overall Score with Segmented Circular Progress
-                  _SegmentedCircularScoreCard(result: result),
-                  const SizedBox(height: 20),
-
-                  const Text(
-                    '점수 분포',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  _ResultCategoryCard(result: result, userName: userName),
-                  const SizedBox(height: 20),
-
-                  const Text(
-                    '그림 비교',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  // Simple and clear
-                  Center(
-                    child: DrawingComparison(result: result),
-                  ),
-
-                  const Text(
-                    '세부항목 수치 계산',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  MetricsCard(metrics: result.metrics),
-                  const SizedBox(height: 32),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.15),
-                                blurRadius: 15,
-                                offset: const Offset(0, 8),
-                              ),
-                            ],
-                          ),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: const Text('공유 기능 준비 중입니다'),
-                                    backgroundColor: Colors.black87,
-                                    behavior: SnackBarBehavior.floating,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                );
-                              },
-                              borderRadius: BorderRadius.circular(16),
-                              child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 16),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.share_rounded,
-                                        color: _primaryColor, size: 20),
-                                    const SizedBox(width: 8),
-                                    const Text(
-                                      '결과 공유',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w600,
-                                        color: _primaryColor,
-                                        letterSpacing: -0.3,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.black.withOpacity(0.08),
+                          width: 0.5,
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                Colors.white,
-                                Colors.white.withOpacity(0.95)
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                blurRadius: 15,
-                                offset: const Offset(0, 8),
-                              ),
-                            ],
-                          ),
-                          child: ElevatedButton.icon(
-                            onPressed: () {
-                              Navigator.of(context)
-                                  .popUntil((route) => route.isFirst);
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.transparent,
-                              shadowColor: Colors.transparent,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                            icon: Icon(Icons.home_rounded,
-                                color: _primaryColor, size: 20),
-                            label: const Text(
-                              '홈으로',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: _primaryColor,
-                                letterSpacing: -0.3,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                      child: Icon(Icons.arrow_back_ios_new_rounded,
+                          size: 15, color: Colors.grey[600]),
+                    ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(width: 12),
+                  const Text(
+                    '검사 결과',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1A1A18),
+                      letterSpacing: -0.4,
+                    ),
+                  ),
                 ],
               ),
             ),
-          ),
-        ),
-      ),
-    );
-  }
-}
 
-// 세그먼트 원형 점수 카드 (각 항목별 비율 표시)
-class _SegmentedCircularScoreCard extends StatelessWidget {
-  final TestResult result;
-
-  const _SegmentedCircularScoreCard({required this.result});
-
-  // 각 항목별 점수 계산 (0-100 기준)
-  Map<String, double> _calculateSegmentScores() {
-    final metrics = result.metrics;
-
-    // 주파수 점수 (3-12Hz 범위 체크, 20점 만점)
-    double frequencyScore = 20.0;
-    if (metrics.frequency >= 3 && metrics.frequency <= 12) {
-      frequencyScore = 20.0 - (metrics.frequency / 12) * 20;
-    }
-
-    // 진폭 점수 (25점 만점)
-    double amplitudeScore = math.max(0, 25.0 - (metrics.amplitude / 10) * 25);
-
-    // 편차 점수 (25점 만점)
-    double deviationScore = 25.0;
-    if (metrics.deviationFromBaseline > 0) {
-      deviationScore =
-          math.max(0, 25.0 - (metrics.deviationFromBaseline / 50) * 25);
-    }
-
-    // 시간 점수 (15점 만점)
-    double durationScore = 15.0;
-    if (metrics.testDuration < 10) {
-      durationScore =
-          math.max(0, 15.0 - ((10 - metrics.testDuration) / 10) * 15);
-    } else if (metrics.testDuration > 30) {
-      durationScore =
-          math.max(0, 15.0 - ((metrics.testDuration - 30) / 30) * 15);
-    }
-
-    // 속도 점수 (15점 만점)
-    double speedScore = 15.0;
-    final normalizedSpeed = (metrics.averageSpeed / 100).clamp(0.0, 1.0);
-    if (normalizedSpeed > 0.8 || normalizedSpeed < 0.2) {
-      speedScore = 0;
-    }
-
-    return {
-      '주파수': frequencyScore,
-      '진폭': amplitudeScore,
-      '정확도': deviationScore,
-      '시간': durationScore,
-      '속도': speedScore,
-    };
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final segmentScores = _calculateSegmentScores();
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
+            // ── Body ───────────────────────────────────────────────────
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Date
+                    Padding(
+                      padding: const EdgeInsets.only(left: 2, bottom: 12),
+                      child: Text(
+                        DateFormat('yyyy년 MM월 dd일 HH:mm')
+                            .format(result.timestamp),
+                        style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                      ),
+                    ),
+
+                    // ── Score card ───────────────────────────────────
+                    _ScoreCard(result: result),
+
+                    const SizedBox(height: 10),
+
+                    // ── Score bar ────────────────────────────────────
+                    _ScoreBarCard(score: result.overallScore),
+
+                    const SizedBox(height: 10),
+
+                    // ── Drawing comparison ───────────────────────────
+                    _SectionLabel(label: '그림 비교'),
+                    const SizedBox(height: 8),
+                    _WhiteCard(child: DrawingComparison(result: result)),
+
+                    const SizedBox(height: 10),
+
+                    // ── Metrics ──────────────────────────────────────
+                    _SectionLabel(label: '세부 수치'),
+                    const SizedBox(height: 8),
+                    _WhiteCard(child: MetricsCard(metrics: result.metrics)),
+
+                    const SizedBox(height: 20),
+
+                    // ── Actions ──────────────────────────────────────
                     Row(
                       children: [
-                        // 세그먼트 원형 그래프
-                        SizedBox(
-                          width: 140,
-                          height: 140,
-                          child: CustomPaint(
-                            painter: _SegmentedCircularProgressPainter(
-                              segments: segmentScores,
-                              totalScore: result.overallScore,
+                        Expanded(
+                          child: SizedBox(
+                            height: 48,
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text('공유 기능 준비 중입니다')),
+                                );
+                              },
+                              icon: const Icon(Icons.share_rounded, size: 16),
+                              label: const Text('공유'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: const Color(0xFF1A1A18),
+                                side: BorderSide(
+                                    color: Colors.black.withOpacity(0.12),
+                                    width: 0.5),
+                                backgroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12)),
+                                textStyle: const TextStyle(
+                                    fontSize: 14, fontWeight: FontWeight.w500),
+                              ),
                             ),
                           ),
                         ),
-                        const Spacer(),
-
-                        // 범례
-                        SizedBox(
-                          child: _ScoreLegend(segments: segmentScores),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: SizedBox(
+                            height: 48,
+                            child: ElevatedButton.icon(
+                              onPressed: () => Navigator.of(context)
+                                  .popUntil((r) => r.isFirst),
+                              icon: const Icon(Icons.home_rounded, size: 16),
+                              label: const Text('홈으로'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.teal800,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12)),
+                                textStyle: const TextStyle(
+                                    fontSize: 14, fontWeight: FontWeight.w500),
+                              ),
+                            ),
+                          ),
                         ),
-                        const SizedBox(width: 20),
                       ],
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [AppColors.teal800, AppColors.teal600],
-              ),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.teal800.withOpacity(0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
             ),
-            child: Text(
-              result.resultCategory,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-                letterSpacing: -0.3,
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+class _SectionLabel extends StatelessWidget {
+  final String label;
+  const _SectionLabel({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      label,
+      style: const TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        color: Color(0xFF1A1A18),
+        letterSpacing: -0.1,
+      ),
+    );
+  }
+}
+
+class _WhiteCard extends StatelessWidget {
+  final Widget child;
+  const _WhiteCard({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.black.withOpacity(0.06), width: 0.5),
+      ),
+      child: child,
+    );
+  }
+}
+
+// ── Score card ────────────────────────────────────────────────────────────────
+
+class _ScoreCard extends StatelessWidget {
+  final TestResult result;
+  const _ScoreCard({required this.result});
+
+  Map<String, double> get _segments {
+    final m = result.metrics;
+    double freq = 20.0;
+    if (m.frequency >= 3 && m.frequency <= 12) {
+      freq = 20.0 - (m.frequency / 12) * 20;
+    }
+    final amp = math.max(0.0, 25.0 - (m.amplitude / 10) * 25);
+    final dev = m.deviationFromBaseline > 0
+        ? math.max(0.0, 25.0 - (m.deviationFromBaseline / 50) * 25)
+        : 25.0;
+    double dur = 15.0;
+    if (m.testDuration < 10) {
+      dur = math.max(0.0, 15.0 - ((10 - m.testDuration) / 10) * 15);
+    } else if (m.testDuration > 30) {
+      dur = math.max(0.0, 15.0 - ((m.testDuration - 30) / 30) * 15);
+    }
+    final spd = ((m.averageSpeed / 100).clamp(0.0, 1.0) > 0.8 ||
+            (m.averageSpeed / 100).clamp(0.0, 1.0) < 0.2)
+        ? 0.0
+        : 15.0;
+    return {'주파수': freq, '진폭': amp, '정확도': dev, '시간': dur, '속도': spd};
+  }
+
+  static const _colors = [
+    AppColors.teal800,
+    AppColors.teal600,
+    AppColors.teal400,
+    AppColors.amber600,
+    AppColors.amber400,
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final segs = _segments;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.black.withOpacity(0.06), width: 0.5),
+      ),
+      child: Row(
+        children: [
+          // Donut chart
+          SizedBox(
+            width: 110,
+            height: 110,
+            child: CustomPaint(
+              painter: _DonutPainter(
+                segments: segs,
+                totalScore: result.overallScore,
               ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE1F5EE),
+                    borderRadius: BorderRadius.circular(7),
+                  ),
+                  child: Text(
+                    _compactCategory(result.resultCategory),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.teal800,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                ...segs.entries.toList().asMap().entries.map((e) {
+                  final idx = e.key;
+                  final entry = e.value;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 5),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: _colors[idx % _colors.length],
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          entry.key,
+                          style:
+                              TextStyle(fontSize: 12, color: Colors.grey[500]),
+                        ),
+                        const Spacer(),
+                        Text(
+                          '${entry.value.toStringAsFixed(0)}점',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: _colors[idx % _colors.length],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+              ],
             ),
           ),
         ],
@@ -378,374 +329,191 @@ class _SegmentedCircularScoreCard extends StatelessWidget {
   }
 }
 
-// 범례
-class _ScoreLegend extends StatelessWidget {
-  final Map<String, double> segments;
-
-  const _ScoreLegend({required this.segments});
-
-  Color _getColorForIndex(int index) {
-    // Keep the palette calm: teal family + warm amber. Avoid red except errors.
-    final colors = [
-      AppColors.teal800,
-      AppColors.teal600,
-      AppColors.teal400,
-      AppColors.amber600,
-      AppColors.amber400,
-    ];
-    return colors[index % colors.length];
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final entries = segments.entries.toList();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(entries.length, (index) {
-        final entry = entries[index];
-        final percentage = (entry.value / 100 * 100).toStringAsFixed(0);
-
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 10,
-                height: 10,
-                decoration: BoxDecoration(
-                  color: _getColorForIndex(index),
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                '${entry.key} $percentage%',
-                style: TextStyle(
-                  color: Colors.grey[800],
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: -0.3,
-                ),
-              ),
-            ],
-          ),
-        );
-      }),
-    );
-  }
-}
-
-// 세그먼트 원형 프로그레스 페인터
-class _SegmentedCircularProgressPainter extends CustomPainter {
+class _DonutPainter extends CustomPainter {
   final Map<String, double> segments;
   final double totalScore;
 
-  _SegmentedCircularProgressPainter({
-    required this.segments,
-    required this.totalScore,
-  });
+  static const _colors = [
+    AppColors.teal800,
+    AppColors.teal600,
+    AppColors.teal400,
+    AppColors.amber600,
+    AppColors.amber400,
+  ];
 
-  Color _getColorForIndex(int index) {
-    final colors = [
-      AppColors.teal800,
-      AppColors.teal600,
-      AppColors.teal400,
-      AppColors.amber600,
-      AppColors.amber400,
-    ];
-    return colors[index % colors.length];
-  }
+  const _DonutPainter({required this.segments, required this.totalScore});
 
   @override
   void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = math.min(size.width, size.height) / 2 - 15;
+    final center = size.center(Offset.zero);
+    final radius = math.min(size.width, size.height) / 2 - 8;
 
-    // 배경 원
-    final bgPaint = Paint()
-      ..color = Colors.grey.shade200
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 20
-      ..strokeCap = StrokeCap.butt;
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..color = Colors.grey.shade100
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 14,
+    );
 
-    canvas.drawCircle(center, radius, bgPaint);
-
-    // 각 세그먼트 그리기
     double startAngle = -math.pi / 2;
     final entries = segments.entries.toList();
-
     for (int i = 0; i < entries.length; i++) {
-      final entry = entries[i];
-      final percentage = entry.value / 100;
-      final sweepAngle = 2 * math.pi * percentage;
-
-      final segmentPaint = Paint()
-        ..color = _getColorForIndex(i)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 20
-        ..strokeCap = StrokeCap.butt;
-
+      final sweep = 2 * math.pi * (entries[i].value / 100);
       canvas.drawArc(
         Rect.fromCircle(center: center, radius: radius),
         startAngle,
-        sweepAngle,
+        sweep,
         false,
-        segmentPaint,
+        Paint()
+          ..color = _colors[i % _colors.length]
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 14
+          ..strokeCap = StrokeCap.butt,
       );
-
-      startAngle += sweepAngle;
+      startAngle += sweep;
     }
 
-    // 중앙 텍스트 (총점 퍼센트)
-    final percentage = (totalScore).toStringAsFixed(0);
-    final textPainter = TextPainter(
+    final tp = TextPainter(
       text: TextSpan(
         children: [
           TextSpan(
-            text: percentage,
+            text: '${totalScore.toStringAsFixed(0)}',
             style: const TextStyle(
               color: AppColors.teal800,
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
             ),
           ),
           TextSpan(
             text: '점',
             style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
+                color: Colors.grey[500],
+                fontSize: 12,
+                fontWeight: FontWeight.w500),
           ),
         ],
       ),
       textDirection: ui.TextDirection.ltr,
-    );
-
-    textPainter.layout();
-    textPainter.paint(
-      canvas,
-      Offset(
-        center.dx - textPainter.width / 2,
-        center.dy - textPainter.height / 2,
-      ),
-    );
+    )..layout();
+    tp.paint(canvas, center - Offset(tp.width / 2, tp.height / 2));
   }
 
   @override
-  bool shouldRepaint(_SegmentedCircularProgressPainter oldDelegate) {
-    return true;
-  }
+  bool shouldRepaint(_DonutPainter old) => false;
 }
 
-// 결과 카테고리 카드 (직선 차트 + 코멘트)
-class _ResultCategoryCard extends StatelessWidget {
-  final TestResult result;
-  final String userName;
+// ── Score bar card ────────────────────────────────────────────────────────────
 
-  const _ResultCategoryCard({
-    required this.result,
-    required this.userName,
-  });
+class _ScoreBarCard extends StatelessWidget {
+  final double score;
+  const _ScoreBarCard({required this.score});
+
+  static const _bands = [
+    {'label': '병원 권장', 'color': AppColors.error600, 'from': 0.0, 'to': 0.4},
+    {'label': '주의', 'color': AppColors.amber600, 'from': 0.4, 'to': 0.55},
+    {'label': '보통', 'color': AppColors.amber400, 'from': 0.55, 'to': 0.7},
+    {'label': '좋음', 'color': AppColors.teal400, 'from': 0.7, 'to': 0.85},
+    {'label': '매우 좋음', 'color': AppColors.teal800, 'from': 0.85, 'to': 1.0},
+  ];
 
   @override
   Widget build(BuildContext context) {
+    final ratio = (score / 100).clamp(0.0, 1.0);
+    final activeIdx = _bands.indexWhere(
+      (b) => ratio >= (b['from'] as double) && ratio < (b['to'] as double),
+    );
+
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.black.withOpacity(0.06), width: 0.5),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _StraightLineChart(score: result.overallScore),
+          LayoutBuilder(builder: (context, constraints) {
+            final w = constraints.maxWidth;
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(5),
+                  child: Row(
+                    children: _bands.map((b) {
+                      final bandW =
+                          ((b['to'] as double) - (b['from'] as double)) * w;
+                      return Container(
+                        width: bandW,
+                        height: 10,
+                        color: (b['color'] as Color).withOpacity(0.2),
+                      );
+                    }).toList(),
+                  ),
+                ),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(5),
+                  child: Row(
+                    children: _bands.asMap().entries.map((e) {
+                      final b = e.value;
+                      final from = b['from'] as double;
+                      final to = b['to'] as double;
+                      final color = b['color'] as Color;
+                      final bandW = (to - from) * w;
+                      if (ratio <= from) {
+                        return SizedBox(width: bandW, height: 10);
+                      } else if (ratio >= to) {
+                        return Container(
+                            width: bandW, height: 10, color: color);
+                      } else {
+                        final fillW = (ratio - from) / (to - from) * bandW;
+                        return Row(children: [
+                          Container(width: fillW, height: 10, color: color),
+                          SizedBox(width: bandW - fillW, height: 10),
+                        ]);
+                      }
+                    }).toList(),
+                  ),
+                ),
+                Positioned(
+                  left: ratio * w - 8,
+                  top: -4,
+                  child: Container(
+                    width: 18,
+                    height: 18,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.teal800, width: 2.5),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          }),
+          const SizedBox(height: 12),
+          Row(
+            children: _bands.asMap().entries.map((e) {
+              final idx = e.key;
+              final b = e.value;
+              final isActive = idx == activeIdx;
+              return Expanded(
+                child: Text(
+                  b['label'] as String,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
+                    color: isActive ? b['color'] as Color : Colors.grey[400],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
         ],
       ),
     );
-  }
-}
-
-// 직선 차트
-class _StraightLineChart extends StatelessWidget {
-  final double score;
-
-  const _StraightLineChart({required this.score});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        SizedBox(
-          height: 60,
-          child: CustomPaint(
-            painter: _StraightLineChartPainter(score: score),
-            child: const SizedBox(width: double.infinity),
-          ),
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            _ChartLabel(
-              text: '병원 방문 권장',
-              color: AppColors.error600,
-              isActive: score < 40,
-            ),
-            _ChartLabel(
-              text: '주의 필요',
-              color: AppColors.amber600,
-              isActive: score >= 40 && score < 55,
-            ),
-            _ChartLabel(
-              text: '보통',
-              color: AppColors.amber400,
-              isActive: score >= 55 && score < 70,
-            ),
-            _ChartLabel(
-              text: '좋음',
-              color: AppColors.teal400,
-              isActive: score >= 70 && score < 85,
-            ),
-            _ChartLabel(
-              text: '매우 좋음',
-              color: AppColors.teal800,
-              isActive: score >= 85,
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _ChartLabel extends StatelessWidget {
-  final String text;
-  final Color color;
-  final bool isActive;
-
-  const _ChartLabel({
-    required this.text,
-    required this.color,
-    required this.isActive,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(
-            color: isActive ? color : Colors.grey[300],
-            shape: BoxShape.circle,
-            boxShadow: isActive
-                ? [
-                    BoxShadow(
-                      color: color.withOpacity(0.4),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : null,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          text,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 15,
-            color: isActive ? color : Colors.grey[500],
-            fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-            height: 1.3,
-            letterSpacing: -0.2,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// 직선 차트 페인터
-class _StraightLineChartPainter extends CustomPainter {
-  final double score;
-
-  _StraightLineChartPainter({required this.score});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 10
-      ..strokeCap = StrokeCap.round;
-
-    final sections = [
-      {'color': AppColors.error600, 'start': 0.0, 'end': 0.4},
-      {'color': AppColors.amber600, 'start': 0.4, 'end': 0.55},
-      {'color': AppColors.amber400, 'start': 0.55, 'end': 0.7},
-      {'color': AppColors.teal400, 'start': 0.7, 'end': 0.85},
-      {'color': AppColors.teal800, 'start': 0.85, 'end': 1.0},
-    ];
-
-    final y = size.height / 2;
-
-    // 배경 선 (회색)
-    for (final section in sections) {
-      paint.color = (section['color'] as Color).withOpacity(0.2);
-      final startX = (section['start'] as double) * size.width;
-      final endX = (section['end'] as double) * size.width;
-      canvas.drawLine(Offset(startX, y), Offset(endX, y), paint);
-    }
-
-    // 점수까지 활성화된 선
-    final scoreRatio = (score / 100).clamp(0.0, 1.0);
-    for (final section in sections) {
-      final start = section['start'] as double;
-      final end = section['end'] as double;
-
-      if (scoreRatio > start) {
-        paint.color = section['color'] as Color;
-        final startX = start * size.width;
-        final endX = math.min(scoreRatio, end) * size.width;
-        canvas.drawLine(Offset(startX, y), Offset(endX, y), paint);
-      }
-    }
-
-    // 사용자 점수 마커
-    final scoreX = scoreRatio * size.width;
-
-    // 외곽 원 (흰색)
-    canvas.drawCircle(
-      Offset(scoreX, y),
-      16,
-      Paint()
-        ..color = Colors.white
-        ..style = PaintingStyle.fill,
-    );
-
-    // 내부 원 (그라데이션)
-    canvas.drawCircle(
-      Offset(scoreX, y),
-      12,
-      Paint()
-        ..color = AppColors.teal800
-        ..style = PaintingStyle.fill,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_StraightLineChartPainter oldDelegate) {
-    return oldDelegate.score != score;
   }
 }
