@@ -22,4 +22,3 @@ class AppColors {
   static const error50 = Color(0xFFFCEBE8);
   static const error600 = Color(0xFFA30C20);
 }
-

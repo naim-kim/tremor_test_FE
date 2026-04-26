@@ -113,16 +113,13 @@ class _ComparisonPainter extends CustomPainter {
     final contentH = (maxY - minY).clamp(1.0, double.infinity);
 
     // Uniform scale to fit both width and height, then center.
-    final scale = (displayWidth / contentW)
-        .clamp(0.0, double.infinity)
-        .isFinite
+    final scale = (displayWidth / contentW).clamp(0.0, double.infinity).isFinite
         ? (displayWidth / contentW)
         : 1.0;
-    final scale2 = (displayHeight / contentH)
-        .clamp(0.0, double.infinity)
-        .isFinite
-        ? (displayHeight / contentH)
-        : 1.0;
+    final scale2 =
+        (displayHeight / contentH).clamp(0.0, double.infinity).isFinite
+            ? (displayHeight / contentH)
+            : 1.0;
     final s = scale < scale2 ? scale : scale2;
 
     final offsetX = (displayWidth - contentW * s) / 2 - minX * s;
@@ -229,7 +226,8 @@ class _ComparisonPainter extends CustomPainter {
     canvas.restore();
   }
 
-  Path _scalePath(Path originalPath, double scaleX, double scaleY, double dx, double dy) {
+  Path _scalePath(
+      Path originalPath, double scaleX, double scaleY, double dx, double dy) {
     final scaledPath = Path();
     final metrics = originalPath.computeMetrics();
 
