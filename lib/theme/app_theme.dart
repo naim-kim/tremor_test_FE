@@ -82,13 +82,15 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         hintStyle: const TextStyle(fontSize: 17, color: AppColors.gray400),
         labelStyle: const TextStyle(fontSize: 17, color: AppColors.gray900),
         errorStyle: const TextStyle(fontSize: 15, height: 1.2),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.gray400.withOpacity(0.35), width: 1.5),
+          borderSide: BorderSide(
+              color: AppColors.gray400.withOpacity(0.35), width: 1.5),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -109,7 +111,8 @@ class AppTheme {
           backgroundColor: AppColors.teal800,
           foregroundColor: Colors.white,
           textStyle: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -118,7 +121,8 @@ class AppTheme {
           foregroundColor: AppColors.teal800,
           side: const BorderSide(color: AppColors.teal800, width: 1.5),
           textStyle: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
@@ -126,7 +130,8 @@ class AppTheme {
           minimumSize: const Size(0, minTapHeight),
           foregroundColor: AppColors.teal800,
           textStyle: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         ),
       ),
       chipTheme: base.chipTheme.copyWith(
@@ -137,4 +142,3 @@ class AppTheme {
     );
   }
 }
-

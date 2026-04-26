@@ -19,7 +19,7 @@ class ApiClient {
   }) async {
     final url = '$baseUrl/api/users';
     debugPrint('Creating user at: $url');
-    
+
     try {
       final uri = Uri.parse(url);
       final resp = await http.post(
@@ -38,7 +38,7 @@ class ApiClient {
         throw Exception(
             'Create user failed (${resp.statusCode}): ${resp.body}');
       }
-      
+
       try {
         return jsonDecode(resp.body) as Map<String, dynamic>;
       } catch (e) {
@@ -49,7 +49,8 @@ class ApiClient {
     } catch (e) {
       debugPrint('Error creating user: $e');
       if (e is FormatException) {
-        throw Exception('Invalid URL format: $url. Please check your API_BASE_URL in .env file.');
+        throw Exception(
+            'Invalid URL format: $url. Please check your API_BASE_URL in .env file.');
       }
       rethrow;
     }
@@ -73,10 +74,10 @@ class ApiClient {
   }) async {
     final url = '$baseUrl/api/tests/csv';
     debugPrint('Saving test CSV at: $url');
-    
+
     try {
       final request = http.MultipartRequest('POST', Uri.parse(url));
-      
+
       // Combine all metadata into a single JSON field to reduce multipart parts
       final metadata = <String, dynamic>{
         'userId': userId,
@@ -85,7 +86,8 @@ class ApiClient {
         if (resultCategory != null) 'resultCategory': resultCategory,
         if (frequency != null) 'frequency': frequency,
         if (amplitude != null) 'amplitude': amplitude,
-        if (deviationFromBaseline != null) 'deviationFromBaseline': deviationFromBaseline,
+        if (deviationFromBaseline != null)
+          'deviationFromBaseline': deviationFromBaseline,
         if (testDuration != null) 'testDuration': testDuration,
         if (averageSpeed != null) 'averageSpeed': averageSpeed,
         if (mean != null) 'mean': mean,
@@ -93,12 +95,14 @@ class ApiClient {
         if (performedAt != null) 'performedAt': performedAt.toIso8601String(),
         if (csvContent != null) 'csvContent': csvContent,
       };
-      
+
       // Send metadata as single JSON field
       request.fields['metadata'] = jsonEncode(metadata);
-      
+
       // Add image file if provided (for pentagon tests)
-      if (imageBytes != null && imageBytes.isNotEmpty && testType == 'pentagon') {
+      if (imageBytes != null &&
+          imageBytes.isNotEmpty &&
+          testType == 'pentagon') {
         request.files.add(
           http.MultipartFile.fromBytes(
             'image',
@@ -108,15 +112,14 @@ class ApiClient {
         );
         debugPrint('Including PNG image (${imageBytes.length} bytes)');
       }
-      
+
       final streamedResponse = await request.send();
       final resp = await http.Response.fromStream(streamedResponse);
-      
+
       debugPrint('Save test response: ${resp.statusCode} - ${resp.body}');
 
       if (resp.statusCode != 201) {
-        throw Exception(
-            'Save test failed (${resp.statusCode}): ${resp.body}');
+        throw Exception('Save test failed (${resp.statusCode}): ${resp.body}');
       }
       return jsonDecode(resp.body) as Map<String, dynamic>;
     } catch (e) {
@@ -125,7 +128,7 @@ class ApiClient {
     }
   }
 
-   Future<List<Map<String, dynamic>>> getUserTests({
+  Future<List<Map<String, dynamic>>> getUserTests({
     required int userId,
     String? testType,
   }) async {
@@ -138,8 +141,7 @@ class ApiClient {
 
     final resp = await http.get(uri, headers: _headers);
     if (resp.statusCode != 200) {
-      throw Exception(
-          'Get tests failed (${resp.statusCode}): ${resp.body}');
+      throw Exception('Get tests failed (${resp.statusCode}): ${resp.body}');
     }
     final decoded = jsonDecode(resp.body);
     if (decoded is List) {
@@ -148,6 +150,3 @@ class ApiClient {
     throw Exception('Unexpected response format from /api/tests');
   }
 }
-
-
-

@@ -100,8 +100,8 @@ class SpiralAnalyzer {
     final refXUp = _interp1(refIdxRaw, refRawX, refIdxNew);
     final refYUp = _interp1(refIdxRaw, refRawY, refIdxNew);
 
-    final filterCoeffs =
-        _designButterworthLowPass(butterworthOrder, lowPassCutoffHz, upsampleFs);
+    final filterCoeffs = _designButterworthLowPass(
+        butterworthOrder, lowPassCutoffHz, upsampleFs);
     final userXFilt = _filtfilt(filterCoeffs, userXUp);
     final userYFilt = _filtfilt(filterCoeffs, userYUp);
 
@@ -126,8 +126,9 @@ class SpiralAnalyzer {
     final Array distError = pairingRes['dist_error'] as Array;
     final List<double> distErrorList =
         List<double>.from(distError.map((e) => e));
-    final double meanError =
-        distErrorList.isEmpty ? 0.0 : distErrorList.reduce((a, b) => a + b) / distErrorList.length;
+    final double meanError = distErrorList.isEmpty
+        ? 0.0
+        : distErrorList.reduce((a, b) => a + b) / distErrorList.length;
     final double maxError =
         distErrorList.isEmpty ? 0.0 : distErrorList.reduce(math.max);
 
@@ -149,7 +150,8 @@ class SpiralAnalyzer {
       }
     }
     if (typicalRadius == 0.0) {
-      typicalRadius = 1.0; // Avoid division by zero; keeps relative metrics finite.
+      typicalRadius =
+          1.0; // Avoid division by zero; keeps relative metrics finite.
     }
 
     final double relativeMeanError = meanError / typicalRadius;
@@ -357,7 +359,8 @@ class SpiralAnalyzer {
   // --------------------------------------------------------------------------
 
   static Array _atan2(Array y, Array x) {
-    return Array(List<double>.generate(y.length, (i) => math.atan2(y[i], x[i])));
+    return Array(
+        List<double>.generate(y.length, (i) => math.atan2(y[i], x[i])));
   }
 
   static Array _sqrt(Array x) {
@@ -455,8 +458,7 @@ class SpiralAnalyzer {
     final double denom = n * sumX2 - sumX * sumX;
     final double slope = denom == 0 ? 0.0 : (n * sumXY - sumX * sumY) / denom;
     final double intercept = (sumY - slope * sumX) / n;
-    final trend =
-        Array(List<double>.generate(n, (i) => slope * i + intercept));
+    final trend = Array(List<double>.generate(n, (i) => slope * i + intercept));
     return _subtract(y, trend);
   }
 
@@ -557,7 +559,8 @@ class SpiralAnalyzer {
         complexArray.length,
         (i) {
           final value = complexArray[i];
-          return math.sqrt(value.real * value.real + value.imaginary * value.imaginary);
+          return math.sqrt(
+              value.real * value.real + value.imaginary * value.imaginary);
         },
       ),
     );
