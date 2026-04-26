@@ -21,30 +21,50 @@ class AppTheme {
     final base = ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: AppColors.warmGray50,
+      scaffoldBackgroundColor: AppColors.white,
       fontFamily: 'NotoSansKR',
     );
 
     return base.copyWith(
       appBarTheme: base.appBarTheme.copyWith(
-        backgroundColor: AppColors.warmGray50,
-        foregroundColor: AppColors.gray900,
+        backgroundColor: AppColors.teal800,
+        foregroundColor: Colors.white,
         centerTitle: true,
         titleTextStyle: const TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.w600,
           letterSpacing: -0.3,
-          color: AppColors.gray900,
+          color: Colors.white,
           fontFamily: 'NotoSansKR',
         ),
       ),
       textTheme: base.textTheme.copyWith(
         // Korean-optimized scale
-        displaySmall: const TextStyle(fontSize: 30, fontWeight: FontWeight.w500),
-        headlineSmall: const TextStyle(fontSize: 22, fontWeight: FontWeight.w500),
-        bodyLarge: const TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
-        bodyMedium: const TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
-        labelMedium: const TextStyle(fontSize: 15, fontWeight: FontWeight.w400),
+        displaySmall: const TextStyle(
+          fontSize: 30,
+          fontWeight: FontWeight.w500,
+          color: AppColors.teal800,
+        ),
+        headlineSmall: const TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.w500,
+          color: AppColors.teal800,
+        ),
+        bodyLarge: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w400,
+          color: AppColors.gray900,
+        ),
+        bodyMedium: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w400,
+          color: AppColors.gray900,
+        ),
+        labelMedium: const TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w400,
+          color: AppColors.gray900,
+        ),
       ),
       cardTheme: base.cardTheme.copyWith(
         color: AppColors.white,
@@ -85,7 +105,7 @@ class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          minimumSize: const Size.fromHeight(minTapHeight),
+          minimumSize: const Size(0, minTapHeight),
           backgroundColor: AppColors.teal800,
           foregroundColor: Colors.white,
           textStyle: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
@@ -94,7 +114,7 @@ class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          minimumSize: const Size.fromHeight(minTapHeight),
+          minimumSize: const Size(0, minTapHeight),
           foregroundColor: AppColors.teal800,
           side: const BorderSide(color: AppColors.teal800, width: 1.5),
           textStyle: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
@@ -103,7 +123,7 @@ class AppTheme {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          minimumSize: const Size.fromHeight(minTapHeight),
+          minimumSize: const Size(0, minTapHeight),
           foregroundColor: AppColors.teal800,
           textStyle: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),

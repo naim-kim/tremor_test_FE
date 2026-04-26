@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/test_result.dart';
 import '../utils/spiral_generator.dart';
+import '../theme/app_colors.dart';
 
 class DrawingComparison extends StatelessWidget {
   final TestResult result;
@@ -76,17 +77,61 @@ class _ComparisonPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final points = result.drawingPoints;
-    if (points.isEmpty) return;
+    // Ensure nothing paints outside the card (prevents overflow artifacts).
+    canvas.save();
+    canvas.clipRect(Offset.zero & size);
 
-    // Calculate scale factors
-    final scaleX = displayWidth / originalWidth;
-    final scaleY = displayHeight / originalHeight;
+    final points = result.drawingPoints;
+    if (points.isEmpty) {
+      canvas.restore();
+      return;
+    }
+
+    // Compute bounds (pentagon drawings can exceed the nominal 500x300 area).
+    // For spiral we keep the original coordinate space to match baseline.
+    double minX = 0, minY = 0, maxX = originalWidth, maxY = originalHeight;
+    if (result.testType == TestType.pentagon) {
+      minX = points.first.x;
+      maxX = points.first.x;
+      minY = points.first.y;
+      maxY = points.first.y;
+      for (final p in points) {
+        if (p.x < minX) minX = p.x;
+        if (p.x > maxX) maxX = p.x;
+        if (p.y < minY) minY = p.y;
+        if (p.y > maxY) maxY = p.y;
+      }
+      // Add a little padding so strokes/markers don't touch edges.
+      const pad = 12.0;
+      minX -= pad;
+      minY -= pad;
+      maxX += pad;
+      maxY += pad;
+    }
+
+    final contentW = (maxX - minX).clamp(1.0, double.infinity);
+    final contentH = (maxY - minY).clamp(1.0, double.infinity);
+
+    // Uniform scale to fit both width and height, then center.
+    final scale = (displayWidth / contentW)
+        .clamp(0.0, double.infinity)
+        .isFinite
+        ? (displayWidth / contentW)
+        : 1.0;
+    final scale2 = (displayHeight / contentH)
+        .clamp(0.0, double.infinity)
+        .isFinite
+        ? (displayHeight / contentH)
+        : 1.0;
+    final s = scale < scale2 ? scale : scale2;
+
+    final offsetX = (displayWidth - contentW * s) / 2 - minX * s;
+    final offsetY = (displayHeight - contentH * s) / 2 - minY * s;
 
     // Draw baseline (spiral) if applicable
     if (showBaseline) {
       final baselinePath = SpiralGenerator.generateSpiralPath(originalWidth);
-      final scaledPath = _scalePath(baselinePath, scaleX, scaleY);
+      final scaledPath = _scalePath(baselinePath, s, s, offsetX, offsetY);
 
       final baselinePaint = Paint()
         ..color = Colors.grey[300]!
@@ -99,7 +144,7 @@ class _ComparisonPainter extends CustomPainter {
 
     // Draw user's drawing with scaling
     final userPaint = Paint()
-      ..color = const Color(0xFF667eea)
+      ..color = AppColors.teal800
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3.0
       ..strokeCap = StrokeCap.round
@@ -141,10 +186,13 @@ class _ComparisonPainter extends CustomPainter {
 
       final path = Path();
       final firstPoint = segment.first;
-      path.moveTo(firstPoint.x * scaleX, firstPoint.y * scaleY);
+      path.moveTo(firstPoint.x * s + offsetX, firstPoint.y * s + offsetY);
 
       for (int i = 1; i < segment.length; i++) {
-        path.lineTo(segment[i].x * scaleX, segment[i].y * scaleY);
+        path.lineTo(
+          segment[i].x * s + offsetX,
+          segment[i].y * s + offsetY,
+        );
       }
 
       canvas.drawPath(path, userPaint);
@@ -157,10 +205,10 @@ class _ComparisonPainter extends CustomPainter {
       // Start point (green)
       final startPoint = firstSegment.first;
       final startPaint = Paint()
-        ..color = Colors.green
+        ..color = AppColors.amber600
         ..style = PaintingStyle.fill;
       canvas.drawCircle(
-        Offset(startPoint.x * scaleX, startPoint.y * scaleY),
+        Offset(startPoint.x * s + offsetX, startPoint.y * s + offsetY),
         6,
         startPaint,
       );
@@ -169,17 +217,19 @@ class _ComparisonPainter extends CustomPainter {
       final lastSegment = segments.last;
       final endPoint = lastSegment.last;
       final endPaint = Paint()
-        ..color = Colors.red
+        ..color = AppColors.error600
         ..style = PaintingStyle.fill;
       canvas.drawCircle(
-        Offset(endPoint.x * scaleX, endPoint.y * scaleY),
+        Offset(endPoint.x * s + offsetX, endPoint.y * s + offsetY),
         6,
         endPaint,
       );
     }
+
+    canvas.restore();
   }
 
-  Path _scalePath(Path originalPath, double scaleX, double scaleY) {
+  Path _scalePath(Path originalPath, double scaleX, double scaleY, double dx, double dy) {
     final scaledPath = Path();
     final metrics = originalPath.computeMetrics();
 
@@ -189,9 +239,9 @@ class _ComparisonPainter extends CustomPainter {
         if (tangent != null) {
           final point = tangent.position;
           if (distance == 0.0) {
-            scaledPath.moveTo(point.dx * scaleX, point.dy * scaleY);
+            scaledPath.moveTo(point.dx * scaleX + dx, point.dy * scaleY + dy);
           } else {
-            scaledPath.lineTo(point.dx * scaleX, point.dy * scaleY);
+            scaledPath.lineTo(point.dx * scaleX + dx, point.dy * scaleY + dy);
           }
         }
       }

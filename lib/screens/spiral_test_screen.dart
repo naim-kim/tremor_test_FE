@@ -18,17 +18,13 @@ class SpiralTestScreen extends StatefulWidget {
 }
 
 class _SpiralTestScreenState extends State<SpiralTestScreen> {
-  // Design Constants
-  static const _gradientColors = [AppColors.teal800, AppColors.teal600];
-  static const _primaryColor = AppColors.teal800;
-
-  final List<DrawingPoint?> _points = []; // null을 포함하도록 변경
+  final List<DrawingPoint?> _points = [];
   int? _startTime;
   Timer? _samplingTimer;
   Offset? _lastPosition;
 
   static const double canvasSize = 300.0;
-  static const int samplingRateMs = 20; // 50Hz = 20ms interval
+  static const int samplingRateMs = 20;
 
   bool _isDrawing = false;
   bool _hasStarted = false;
@@ -52,18 +48,13 @@ class _SpiralTestScreenState extends State<SpiralTestScreen> {
   }
 
   void _updateDrawing(Offset position) {
-    if (_isDrawing) {
-      setState(() {
-        _lastPosition = position;
-      });
-    }
+    if (_isDrawing) setState(() => _lastPosition = position);
   }
 
   void _stopDrawing() {
     setState(() {
       _isDrawing = false;
       _lastPosition = null;
-      // 선을 끊기 위해 null 추가
       _points.add(null);
     });
   }
@@ -74,14 +65,13 @@ class _SpiralTestScreenState extends State<SpiralTestScreen> {
       (timer) {
         if (_lastPosition != null && _hasStarted && _isDrawing) {
           final currentTime = DateTime.now().millisecondsSinceEpoch;
-          final point = DrawingPoint(
+          _points.add(DrawingPoint(
             x: _lastPosition!.dx,
             y: _lastPosition!.dy,
             normalizedX: _lastPosition!.dx / canvasSize,
             normalizedY: _lastPosition!.dy / canvasSize,
             timestamp: currentTime - _startTime!,
-          );
-          _points.add(point);
+          ));
         }
       },
     );
@@ -89,163 +79,132 @@ class _SpiralTestScreenState extends State<SpiralTestScreen> {
 
   Future<void> _finishTest() async {
     _samplingTimer?.cancel();
-
-    // null 값 제거하여 실제 포인트만 전달
     final validPoints = _points.whereType<DrawingPoint>().toList();
-
     if (validPoints.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('먼저 그림을 그려주세요'),
-          backgroundColor: Colors.red.shade400,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
+        const SnackBar(content: Text('먼저 그림을 그려주세요')),
       );
       return;
     }
-
-    // Show loading
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(
+      builder: (_) => const Center(
         child: CircularProgressIndicator(
           valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
         ),
       ),
     );
-
-    // Calculate results
     final testProvider = Provider.of<TestProvider>(context, listen: false);
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     final apiClient = Provider.of<ApiClient>(context, listen: false);
-
     final backendUserId = userProvider.userId;
     if (backendUserId == null) {
       if (!mounted) return;
-      Navigator.of(context).pop(); // close loading
+      Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('먼저 회원가입/로그인을 해주세요.'),
-          backgroundColor: Colors.red.shade400,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
+        const SnackBar(content: Text('먼저 회원가입/로그인을 해주세요.')),
       );
       return;
     }
-
     final result = await testProvider.analyzeTest(
       testType: TestType.spiral,
       points: validPoints,
     );
-
-    // Save result locally and sync to backend (CSV export happens on backend).
     await testProvider.saveResult(
       result,
       backendUserId: backendUserId,
       apiClient: apiClient,
       pixelsPerMm: userProvider.pixelsPerMm,
     );
-
     if (!mounted) return;
-
-    // Close loading dialog
     Navigator.of(context).pop();
-
-    // Navigate to result screen
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (_) => ResultScreen(result: result),
-      ),
+      MaterialPageRoute(builder: (_) => ResultScreen(result: result)),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: TextButton.icon(
-          onPressed: () => Navigator.of(context).pop(),
-          style: TextButton.styleFrom(
-            foregroundColor: Colors.white,
-            minimumSize: const Size(0, 52),
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-          ),
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          label: const Text('뒤로'),
-        ),
-        titleSpacing: 0,
-        title: const Text(
-          '나선 그리기 검사',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-            letterSpacing: -0.5,
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: _gradientColors,
-          ),
-        ),
-        child: SafeArea(
+      backgroundColor: const Color(0xFFF2F3F7),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
           child: Column(
             children: [
-              const SizedBox(height: 20),
-              // Instructions
-              Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  children: [
-                    const Text(
-                      '나선을 따라 그려주세요',
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
+              // ── App bar ──────────────────────────────────────────────
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
                         color: Colors.white,
-                        letterSpacing: -0.5,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                            color: Colors.black.withOpacity(0.08), width: 0.5),
                       ),
+                      child: Icon(Icons.arrow_back_ios_new_rounded,
+                          size: 15, color: Colors.grey[600]),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '선을 최대한 정확하게 따라가세요',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.white.withOpacity(0.8),
+                  ),
+                  const SizedBox(width: 12),
+                  const Text(
+                    '나선 그리기 검사',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1A1A18),
+                      letterSpacing: -0.4,
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 14),
+
+              // ── Instruction ──────────────────────────────────────────
+              Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE1F5EE),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline_rounded,
+                        size: 15, color: AppColors.teal800),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        '나선을 따라 최대한 정확하게 그려주세요',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppColors.teal800,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
 
-              // Drawing Canvas
+              const SizedBox(height: 16),
+
+              // ── Canvas ───────────────────────────────────────────────
               Expanded(
                 child: Center(
                   child: Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
+                      border: Border.all(
+                          color: Colors.black.withOpacity(0.06), width: 0.5),
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(20),
@@ -264,55 +223,34 @@ class _SpiralTestScreenState extends State<SpiralTestScreen> {
                 ),
               ),
 
-              // Finish Button
-              Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Container(
-                  width: double.infinity,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    gradient: _hasStarted
-                        ? LinearGradient(
-                            colors: [
-                              Colors.white,
-                              Colors.white.withOpacity(0.95)
-                            ],
-                          )
-                        : null,
-                    color: _hasStarted ? null : Colors.white.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: _hasStarted
-                        ? [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
-                              blurRadius: 15,
-                              offset: const Offset(0, 8),
-                            ),
-                          ]
-                        : null,
+              const SizedBox(height: 16),
+
+              // ── Status ───────────────────────────────────────────────
+              Text(
+                _hasStarted ? '그리기 완료 후 아래 버튼을 누르세요' : '캔버스를 터치해 시작하세요',
+                style: TextStyle(fontSize: 12, color: Colors.grey[400]),
+              ),
+
+              const SizedBox(height: 10),
+
+              // ── Button ───────────────────────────────────────────────
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: _hasStarted ? _finishTest : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.teal800,
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor:
+                        AppColors.teal800.withOpacity(0.25),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
+                    textStyle: const TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.w600),
                   ),
-                  child: ElevatedButton(
-                    onPressed: _hasStarted ? _finishTest : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      disabledBackgroundColor: Colors.transparent,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    child: Text(
-                      '완료',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        color: _hasStarted
-                            ? _primaryColor
-                            : Colors.white.withOpacity(0.5),
-                        letterSpacing: -0.3,
-                      ),
-                    ),
-                  ),
+                  child: const Text('완료'),
                 ),
               ),
             ],
