@@ -278,24 +278,18 @@ class MyPageScreen extends StatelessWidget {
   void _showLogoutDialog(BuildContext context, UserProvider userProvider) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('로그아웃'),
-        content: const Text('로그아웃 하시겠습니까?'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context), child: const Text('취소')),
-          TextButton(
-            onPressed: () {
-              userProvider.logout();
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
-                (route) => false,
-              );
-            },
-            child: const Text('로그아웃'),
-          ),
-        ],
+      barrierColor: Colors.black.withOpacity(0.35),
+      builder: (context) => _ConfirmDialog(
+        title: '로그아웃',
+        message: '로그아웃 하시겠습니까?',
+        confirmLabel: '로그아웃',
+        onConfirm: () {
+          userProvider.logout();
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const LoginScreen()),
+            (route) => false,
+          );
+        },
       ),
     );
   }
@@ -303,25 +297,18 @@ class MyPageScreen extends StatelessWidget {
   void _showClearDialog(BuildContext context, TestProvider testProvider) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('전체 삭제'),
-        content: const Text('모든 검사 기록을 삭제하시겠습니까?'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context), child: const Text('취소')),
-          TextButton(
-            onPressed: () {
-              testProvider.clearAllResults();
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('모든 기록이 삭제되었습니다')),
-              );
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('삭제'),
-          ),
-        ],
+      barrierColor: Colors.black.withOpacity(0.35),
+      builder: (context) => _ConfirmDialog(
+        title: '전체 삭제',
+        message: '모든 검사 기록을 삭제하시겠습니까?',
+        confirmLabel: '삭제',
+        onConfirm: () {
+          testProvider.clearAllResults();
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('모든 기록이 삭제되었습니다')),
+          );
+        },
       ),
     );
   }
@@ -537,22 +524,110 @@ class _TestHistoryItem extends StatelessWidget {
   void _confirmDelete(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('기록 삭제'),
-        content: const Text('이 검사 기록을 삭제하시겠습니까?'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context), child: const Text('취소')),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              onDelete();
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('삭제'),
-          ),
-        ],
+      barrierColor: Colors.black.withOpacity(0.35),
+      builder: (context) => _ConfirmDialog(
+        title: '기록 삭제',
+        message: '이 검사 기록을 삭제하시겠습니까?',
+        confirmLabel: '삭제',
+        onConfirm: () {
+          Navigator.pop(context);
+          onDelete();
+        },
+      ),
+    );
+  }
+}
+
+// ── Confirm dialog ────────────────────────────────────────────────────────────
+
+class _ConfirmDialog extends StatelessWidget {
+  final String title;
+  final String message;
+  final String confirmLabel;
+  final VoidCallback onConfirm;
+
+  const _ConfirmDialog({
+    required this.title,
+    required this.message,
+    required this.confirmLabel,
+    required this.onConfirm,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1A1A18),
+                letterSpacing: -0.3,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey[500],
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 44,
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF1A1A18),
+                        side: BorderSide(
+                            color: Colors.black.withOpacity(0.10), width: 0.5),
+                        backgroundColor: const Color(0xFFF7F8FA),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(11)),
+                        textStyle: const TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.w500),
+                      ),
+                      child: const Text('취소'),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: SizedBox(
+                    height: 44,
+                    child: ElevatedButton(
+                      onPressed: onConfirm,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red.shade400,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(11)),
+                        textStyle: const TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.w500),
+                      ),
+                      child: Text(confirmLabel),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
